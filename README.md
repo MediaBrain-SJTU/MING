@@ -9,7 +9,7 @@
 
 
 
-## 快速开始<img src="./image/image4.png" width
+## 快速开始
 
 1. 配置项目依赖环境
 
