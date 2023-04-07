@@ -150,7 +150,7 @@ CUDA_VISIBLE_DEIVCES=$cuda_id python train.py \
   year = {2023},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/MediaBrain-SJTU/MedGPT-zh}},
+  howpublished = {\url{https://github.com/MediaBrain-SJTU/MedicalGPT-zh}},
 }
 ```
 
