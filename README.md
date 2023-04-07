@@ -80,7 +80,7 @@
 
 
 ## 模型输出样例
-更多我们模型得测试结果详见`./data/test_result.json`
+更多我们模型的测试结果详见`./data/test_result.json`
 <!DOCTYPE html>
 <html>
 <head>
