@@ -144,6 +144,13 @@ CUDA_VISIBLE_DEIVCES=$cuda_id python train.py \
 如果你使用了本项目的数据或者代码，请声明引用
 
 ```latex
-
+@misc{MedGPT-zh,
+  author={Hongcheng Liu, Yusheng Liao, YuTong Meng, YuWang},
+  title = {青庚：中文医疗对话语言模型},
+  year = {2023},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/MediaBrain-SJTU/MedGPT-zh}},
+}
 ```
 
