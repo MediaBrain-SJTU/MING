@@ -1,0 +1,83 @@
+<svg width="684" height="439" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" viewBox="0 0 684 439">
+<rect width="684" height="439" x="0" y="0" id="0" fill="none"></rect>
+<polyline points="442 107.7 452 96.6 632 96.6" fill="none" stroke="#5470c6"></polyline>
+<polyline points="483.8 268.4 498 273.2 632 273.2" fill="none" stroke="#91cc75"></polyline>
+<polyline points="423.8 345.2 432 357.8 632 357.8" fill="none" stroke="#fac858"></polyline>
+<polyline points="363.1 368 365.2 394.9 632 394.9" fill="none" stroke="#ee6666"></polyline>
+<polyline points="299.1 363.2 294.8 419.7 52 419.7" fill="none" stroke="#73c0de"></polyline>
+<polyline points="247.6 336.1 238.1 383.6 52 383.6" fill="none" stroke="#3ba272"></polyline>
+<polyline points="213.6 297 200.7 347.5 52 347.5" fill="none" stroke="#fc8452"></polyline>
+<polyline points="195.1 249.8 180.4 311.4 52 311.4" fill="none" stroke="#9a60b4"></polyline>
+<polyline points="193.2 200.8 170.2 275.3 52 275.3" fill="none" stroke="#ea7ccc"></polyline>
+<polyline points="205.8 156.6 148.5 239.2 52 239.2" fill="none" stroke="#5470c6"></polyline>
+<polyline points="226.9 123.3 132.2 203 52 203" fill="none" stroke="#91cc75"></polyline>
+<polyline points="250.5 100.6 123.6 167 52 167" fill="none" stroke="#fac858"></polyline>
+<polyline points="270 87.9 145.9 129.8 52 129.8" fill="none" stroke="#ee6666"></polyline>
+<polyline points="281.7 82.1 238.2 92.8 52 92.8" fill="none" stroke="#73c0de"></polyline>
+<polyline points="289.6 78.9 284.4 55.6 52 55.6" fill="none" stroke="#3ba272"></polyline>
+<polyline points="317.2 71.6 314.7 18.5 52 18.5" fill="none" stroke="#fc8452"></polyline>
+<path d="M342 69.5A150 150 0 0 1 491.0838 202.9462L441.3892 208.4641A100 100 0 0 0 342 119.5Z" fill="#5470c6" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M491.0838 202.9462A150 150 0 0 1 449.2588 324.3597L413.5059 289.4065A100 100 0 0 0 441.3892 208.4641Z" fill="#91cc75" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M449.2588 324.3597A150 150 0 0 1 394.4919 360.0155L376.9946 313.177A100 100 0 0 0 413.5059 289.4065Z" fill="#fac858" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M394.4919 360.0155A150 150 0 0 1 330.795 369.0809L334.53 319.2206A100 100 0 0 0 376.9946 313.177Z" fill="#ee6666" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M330.795 369.0809A150 150 0 0 1 269.4068 350.764L293.6045 307.0093A100 100 0 0 0 334.53 319.2206Z" fill="#73c0de" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M269.4068 350.764A150 150 0 0 1 228.6768 317.7744L266.4512 285.0163A100 100 0 0 0 293.6045 307.0093Z" fill="#3ba272" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M228.6768 317.7744A150 150 0 0 1 202.2235 273.9291L248.8157 255.7861A100 100 0 0 0 266.4512 285.0163Z" fill="#fc8452" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M202.2235 273.9291A150 150 0 0 1 192.0962 224.871L242.0641 223.0807A100 100 0 0 0 248.8157 255.7861Z" fill="#9a60b4" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M192.0962 224.871A150 150 0 0 1 198.0881 177.199L246.0588 191.2993A100 100 0 0 0 242.0641 223.0807Z" fill="#ea7ccc" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M198.0881 177.199A150 150 0 0 1 216.4739 137.383L258.3159 164.7554A100 100 0 0 0 246.0588 191.2993Z" fill="#5470c6" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M216.4739 137.383A150 150 0 0 1 238.9749 110.4778L273.3166 146.8186A100 100 0 0 0 258.3159 164.7554Z" fill="#91cc75" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M238.9749 110.4778A150 150 0 0 1 262.9833 91.9995L289.3222 134.4997A100 100 0 0 0 273.3166 146.8186Z" fill="#fac858" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M262.9833 91.9995A150 150 0 0 1 277.2816 84.1799L298.8544 129.2866A100 100 0 0 0 289.3222 134.4997Z" fill="rgb(238,102,102)" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M277.2816 84.1799A150 150 0 0 1 286.2559 80.2427L304.8373 126.6618A100 100 0 0 0 298.8544 129.2866Z" fill="rgb(115,192,222)" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M286.2559 80.2427A150 150 0 0 1 293.0559 77.7098L309.3706 124.9732A100 100 0 0 0 304.8373 126.6618Z" fill="rgb(59,162,114)" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M293.0559 77.7098A150 150 0 0 1 342 69.5L342 119.5A100 100 0 0 0 309.3706 124.9732Z" fill="rgb(252,132,82)" stroke="#fff" stroke-linejoin="round"></path>
+<path d="M-48 -15l48 0l0 30l-48 0Z" transform="translate(632 96.5579)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="end" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(632 96.5579)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">疾病描述</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(632 96.5579)" fill="#999">23.24%</text>
+<path d="M-48 -15l48 0l0 30l-48 0Z" transform="translate(632 273.2405)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="end" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(632 273.2405)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">病因分析</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(632 273.2405)" fill="#999">14.08%</text>
+<path d="M-48 -15l48 0l0 30l-48 0Z" transform="translate(632 357.777)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="end" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(632 357.777)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">病情诊断</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(632 357.777)" fill="#999">6.99%</text>
+<path d="M-48 -15l48 0l0 30l-48 0Z" transform="translate(632 394.877)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="end" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(632 394.877)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">病理诊断</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(632 394.877)" fill="#999">6.88%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 419.65)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 419.65)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">药物剂量</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 419.65)" fill="#999">6.85%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 383.55)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 383.55)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">用药建议</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 383.55)" fill="#999">5.59%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 347.45)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 347.45)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">医学知识</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 347.45)" fill="#999">5.46%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 311.35)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 311.35)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">预后评估</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 311.35)" fill="#999">5.34%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 275.25)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 275.25)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">医疗建议</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 275.25)" fill="#999">5.12%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 239.15)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 239.15)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">就医建议</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 239.15)" fill="#999">4.67%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 203.05)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 203.05)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">后果表述</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 203.05)" fill="#999">3.73%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 166.95)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 166.95)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">预防措施</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 166.95)" fill="#999">3.22%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 129.85)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 129.85)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">治疗方案</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 129.85)" fill="#999">1.73%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 92.75)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 92.75)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">注意事项</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 92.75)" fill="#999">1.04%</text>
+<path d="M0 -15l48 0l0 30l-48 0Z" transform="translate(52 55.65)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 55.65)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">指标解读</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 55.65)" fill="#999">0.77%</text>
+<path d="M0 -15l28.8965 0l0 30l-28.8965 0Z" transform="translate(52 18.55)" fill="none"></path>
+<text dominant-baseline="central" text-anchor="start" style="font: normal normal 12px Microsoft YaHei" y="-7.5" transform="translate(52 18.55)" fill="#333" stroke="rgb(255,255,255)" stroke-width="2" paint-order="stroke" stroke-miterlimit="2">其他</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:10px;font-family:Microsoft YaHei;" y="7.5" transform="translate(52 18.55)" fill="#999">5.29%</text>
+</svg>
