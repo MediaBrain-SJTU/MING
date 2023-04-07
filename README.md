@@ -4,7 +4,7 @@
 
 # 青庚：中文医疗对话语言模型
 
-<img src="https://img.shields.io/badge/Version-1.0--alpha-brightgreen"><img src="https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg"><img src="https://img.shields.io/badge/python-3.8+-blue.svg">
+<img src="https://img.shields.io/badge/Version-1.0--alpha-brightgreen"> <img src="https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg"> <img src="https://img.shields.io/badge/python-3.8+-blue.svg">
 
 本项目开源了基于ChatGLM-6B中文医疗指令微调的中文医疗通用模型。
 
