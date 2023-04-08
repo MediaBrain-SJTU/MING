@@ -6,9 +6,7 @@
 
 <img src="https://img.shields.io/badge/Version-1.0--alpha-brightgreen"> <img src="https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg"> <img src="https://img.shields.io/badge/python-3.8+-blue.svg">
 
-> 有鸟焉，其状如鹊，青身白喙，白目白尾，名曰青耕，可以御疫，其鸣自叫。
->
-> ​																														——《山海经》
+> 有鸟焉，其状如鹊，青身白喙，白目白尾，名曰青耕，可以御疫，其鸣自叫。				——《山海经》
 
 青耕，有御疫之意。庚，五行属金，金曰从革。变革以御疫，是为青庚。
 
