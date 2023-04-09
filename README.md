@@ -2,14 +2,9 @@
   <img src="./image/image3.png" width=900px/>
 </p>
 
-# 青庚：中文医疗对话语言模型
+# MedicalGPT-zh：中文医疗对话语言模型
 
 <img src="https://img.shields.io/badge/Version-1.0--alpha-brightgreen"> <img src="https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg"> <img src="https://img.shields.io/badge/python-3.8+-blue.svg">
-
-> 有鸟焉，其状如鹊，青身白喙，白目白尾，名曰青耕，可以御疫，其鸣自叫。				——《山海经》
-
-青耕，有御疫之意。庚，五行属金，金曰从革。革新以御疫，是为青庚。
-
 
 
 ## 项目简介
@@ -98,7 +93,7 @@
   <tr>
       <td><strong>问题</strong></td>
       <td><strong>ChatGLM</strong></td>
-      <td><strong>QingGeng</strong></td>
+      <td><strong>MedicalGPT-zh</strong></td>
   </tr>
   <tr>
     <td style="width: 20%;">冠心丹参滴丸在哪些方面优于对照组？有哪些不良反应和服药禁忌？</td>
@@ -154,7 +149,7 @@ CUDA_VISIBLE_DEIVCES=$cuda_id python train.py \
 ```latex
 @misc{MedicalGPT-zh,
   author={Hongcheng Liu, Yusheng Liao, Yutong Meng, Yu Wang, Yanfeng Wang},
-  title = {青庚：中文医疗对话语言模型},
+  title = {MedicalGPT-zh：中文医疗对话语言模型},
   year = {2023},
   publisher = {GitHub},
   journal = {GitHub repository},
