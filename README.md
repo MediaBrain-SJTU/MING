@@ -153,7 +153,7 @@ CUDA_VISIBLE_DEIVCES=$cuda_id python train.py \
 
 ```latex
 @misc{MedicalGPT-zh,
-  author={Hongcheng Liu, Yusheng Liao, Yutong Meng, Yu Wang},
+  author={Hongcheng Liu, Yusheng Liao, Yutong Meng, Yu Wang, Yanfeng Wang},
   title = {青庚：中文医疗对话语言模型},
   year = {2023},
   publisher = {GitHub},
