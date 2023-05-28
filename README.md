@@ -22,7 +22,7 @@
    pip install -r requirements.txt
    ```
 
-2. [下载](https://cloud.tsinghua.edu.cn/d/fb9f16d6dc8f482596c2/)ChatGLM-6B模型参数`pytorch_model-0000X-of-00008.bin`（参考[ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B)），将其放入`./model`目录下。
+2. [下载](https://pan.baidu.com/s/1d1KuLFuvVlQDaGQOBvisuQ)（提取码：m609）ChatGLM-6B模型参数`pytorch_model-0000X-of-00008.bin`（参考[ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B)），将其放入`./model`目录下。
 
 3. 运行交互文件（要求单卡显存 >= 15G）
 
