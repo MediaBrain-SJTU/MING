@@ -63,7 +63,7 @@
   <tr>
       <td><center>MING-1.8B</center></td>
       <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat">Qwen1.5-1.8b</a></center></td>
-      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-1.8B">MING-7B</a></center></td>
+      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-1.8B">MING-1.8B</a></center></td>
   </tr>
 </table>
 </body>
