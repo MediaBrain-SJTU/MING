@@ -123,7 +123,9 @@ def generate_stream(model, tokenizer, params, device, beam_size,
         temperature=temperature,
     )
 
-    output = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+    outputs = outputs[0][len(input_ids[0]):]
+    output = tokenizer.decode(outputs, skip_special_tokens=True)
+
     
     return output
 
@@ -204,7 +206,7 @@ def chat_loop(model_path: str, device: str, num_gpus: str,
         chatio.prompt_for_output(conv.roles[1])
         context_len = len(prompt)  + max_new_tokens + 8
         T1 = time.time()
-        output_stream = generate_stream_func(model, tokenizer, params, device, beam_size,context_len=context_len)[-1][skip_echo_len:].strip()
+        output_stream = generate_stream_func(model, tokenizer, params, device, beam_size,context_len=context_len)
         T2 = time.time()
         if debug:
             print('程序运行时间:%s秒' % ((T2 - T1)))

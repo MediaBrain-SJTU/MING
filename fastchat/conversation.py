@@ -12,6 +12,7 @@ class SeparatorStyle(Enum):
     CHATGLM = auto()
     DOCTOR = auto()
     BLOOM = auto()
+    QWEN = auto()
 
 
 @dataclasses.dataclass
@@ -91,6 +92,15 @@ class Conversation:
                     ret += role + ": " + message + seps[i % 2]
                 else:
                     ret += role + ":"
+            return ret
+        elif self.sep_style == SeparatorStyle.QWEN:
+            seps = [self.sep, self.sep2]
+            ret = f"<|im_start|>system\n{self.system}<|im_end|>\n"
+            for i, (role, message) in enumerate(self.messages):
+                if message:
+                    ret += role + "\n" + message + seps[i % 2]
+                else:
+                    ret += role + "\n"
             return ret
         else:
             raise ValueError(f"Invalid style: {self.sep_style}")
@@ -237,6 +247,16 @@ conv_baichuan = Conversation(
     sep2="</s>",
 )
 
+conv_qwen = Conversation(
+    system="You are a helpful assistant.",
+    roles=("<|im_start|>user", "<|im_start|>assistant"),
+    messages=(),
+    offset=0,
+    sep_style=SeparatorStyle.QWEN,
+    sep="<|im_end|>\n",
+    sep2="<|im_end|>\n",
+)
+
 conv_templates = {
     "conv_one_shot": conv_one_shot,
     "vicuna_v1.1": conv_vicuna_v1_1,
@@ -244,6 +264,7 @@ conv_templates = {
     "dolly": conv_dolly,
     "baichuan": conv_baichuan,
     "bloom": conv_bloom,
+    "qwen": conv_qwen
 }
 
 
@@ -251,6 +272,8 @@ def get_default_conv_template(model_name):
     model_name = model_name.lower()
     if "vicuna" in model_name or "output" in model_name:
         return conv_vicuna_v1_1
+    elif "qwen" in model_name:
+        return conv_qwen
     elif "baichuan" in model_name:
         # print("load conv_baichuan")
         return conv_baichuan
