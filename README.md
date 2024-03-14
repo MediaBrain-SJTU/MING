@@ -88,6 +88,15 @@
 2. 下载模型参数并运行（要求单卡显存 >= 15G）
 
    ```bash
+   # MING-1.8B
+   CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
+       --model-path {path_to_checkpoint}  # 模型路径
+       --conv-template qwen 
+       --max-new-token 512 # 输出最大长度
+       --beam-size 3 # beam search宽度
+       --temperature 0.7 # 采样温度
+
+   # MING-7B
    CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
        --model-path {path_to_checkpoint}  # 模型路径
        --max-new-token 512 # 输出最大长度
