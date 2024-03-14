@@ -32,6 +32,7 @@
 
 
 ## 💫更新
+🔥 [2024/03/14] 开源了基于Qwen1.5-1.8b指令微调的MING-1.8B
 
 * [2023/07/25] 开源了基于bloomz-7b指令微调的MING-7B
 
@@ -52,10 +53,17 @@
       <td style="width: 20%;"><div align="center"><strong>基座</strong></div></td>
       <td style="width: 30%;"><div align="center"><strong>HuggingFace</strong></div></td>
   </tr>
+  
   <tr>
       <td><center>MING-7B</center></td>
       <td><center><a href="https://huggingface.co/bigscience/bloomz-7b1-mt">bloomz-7b1-mt</a></center></td>
       <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-7B">MING-7B</a></center></td>
+  </tr>
+
+  <tr>
+      <td><center>MING-1.8B</center></td>
+      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat">Qwen1.5-1.8b</a></center></td>
+      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-1.8B">MING-7B</a></center></td>
   </tr>
 </table>
 </body>
