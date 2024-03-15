@@ -92,9 +92,7 @@
    CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
        --model-path {path_to_checkpoint}  # 模型路径
        --conv-template qwen 
-       --max-new-token 512 # 输出最大长度
-       --beam-size 3 # beam search宽度
-       --temperature 0.7 # 采样温度
+       --max-new-token 2048 # 输出最大长度
 
    # MING-7B
    CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
