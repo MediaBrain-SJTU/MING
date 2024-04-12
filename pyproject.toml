@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fschat"
-version = "0.2.2"
-description = "An open platform for training, serving, and evaluating large language model based chatbots."
+name = "ming"
+version = "1.1.3"
+description = "Medical GPT"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -13,15 +13,17 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-    "accelerate", "fastapi", "gradio==3.23", "markdown2[all]", "numpy",
-    "prompt_toolkit>=3.0.0", "requests", "rich>=10.0.0", "sentencepiece",
-    "shortuuid", "transformers>=4.28.0", "tokenizers>=0.12.1", "torch",
-    "uvicorn", "wandb", "httpx", "shortuuid", "pydantic",
+    "torch==2.0.1", "torchvision==0.15.2",
+    "accelerate==0.27.2", "peft==0.4.0", "bitsandbytes==0.41.0",
+    "pydantic<2,>=1", "markdown2[all]", "numpy", "scikit-learn==1.2.2",
+    "gradio==3.35.2", "gradio_client==0.2.9",
+    "requests", "httpx==0.24.0", "uvicorn", "fastapi",
+    "einops==0.6.1", "einops-exts==0.0.4", "timm==0.6.13", "transformers>=4.37.0", "jsonlines"
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/lm-sys/fastchat"
-"Bug Tracker" = "https://github.com/lm-sys/fastchat/issues"
+[project.optional-dependencies]
+train = ["deepspeed>=0.9.5", "ninja", "wandb"]
+
 
 [tool.setuptools.packages.find]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
