@@ -325,6 +325,7 @@ conv_templates = {
     "dolly": conv_dolly,
     "baichuan": conv_baichuan,
     "qwen": conv_qwen,
+    "bloom": conv_bloom,
     "internlm": conv_internlm_chat
 }
 

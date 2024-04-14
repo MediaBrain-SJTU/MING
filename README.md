@@ -48,7 +48,7 @@ with State Aware Patient Simulator](https://arxiv.org/pdf/2403.08495.pdf)
 
   
 
-##  🔬模型参数
+##  🔬开源模型
 
 <!DOCTYPE html>
 <html>
