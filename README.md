@@ -29,10 +29,18 @@
 </body>
 </html>
 
-
+## 📄相关论文
+* 基于多智能体交互的大语言模型多轮问诊自动评估框架
+  
+  [Automatic Interactive Evaluation for Large Language Models
+with State Aware Patient Simulator](https://arxiv.org/pdf/2403.08495.pdf)
 
 ## 💫更新
-🔥 [2024/03/14] 开源了基于Qwen1.5-1.8b指令微调的MING-1.8B
+* 🔥 [coming soon] Technical Report
+
+* 🔥 [2024/04/14] 开源了基于Qwen1.5指令微调的专家混合模型MING-MOE
+
+* [2024/03/14] 开源了基于Qwen1.5-1.8b指令微调的MING-1.8B
 
 * [2023/07/25] 开源了基于bloomz-7b指令微调的MING-7B
 
@@ -47,7 +55,7 @@
 <head>
 </head>
 <body>
-<table style="width: 70%;">
+<table style="width: 80%;">
   <tr>
       <td style="width: 20%;"><div align="center"><strong>模型</strong></div></td>
       <td style="width: 20%;"><div align="center"><strong>基座</strong></div></td>
@@ -62,8 +70,32 @@
 
   <tr>
       <td><center>MING-1.8B</center></td>
-      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat">Qwen1.5-1.8b</a></center></td>
+      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat">Qwen1.5-1.8B</a></center></td>
       <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-1.8B">MING-1.8B</a></center></td>
+  </tr>
+
+  <tr>
+      <td><center>MING-MOE-1.8B</center></td>
+      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat">Qwen1.5-1.8B</a></center></td>
+      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-MOE-1.8B">MING-MOE-1.8B</a></center></td>
+  </tr>
+
+  <tr>
+      <td><center>MING-MOE-4B</center></td>
+      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-4B-Chat">Qwen1.5-4B</a></center></td>
+      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-MOE-4B">MING-MOE-4B</a></center></td>
+  </tr>
+
+  <tr>
+      <td><center>MING-MOE-7B</center></td>
+      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-7B-Chat">Qwen1.5-7B</a></center></td>
+      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-MOE-7B">MING-MOE-7B</a></center></td>
+  </tr>
+
+  <tr>
+      <td><center>MING-MOE-14B</center></td>
+      <td><center><a href="https://huggingface.co/Qwen/Qwen1.5-14B-Chat">Qwen1.5-14B</a></center></td>
+      <td><center>🤗<a href="https://huggingface.co/BlueZeros/MING-MOE-14B">MING-MOE-14B</a></center></td>
   </tr>
 </table>
 </body>
@@ -75,7 +107,8 @@
 1. 配置环境（测试环境如下，具体版本可以根据实际需求配置）
 
    * python==3.9.16
-   * pytorch==1.13.0+cu116
+   * pytorch==2.0.1+cu117
+   * peft==0.9.0
 
 2. 安装项目依赖 
 
@@ -88,10 +121,15 @@
 2. 下载模型参数并运行（要求单卡显存 >= 15G）
 
    ```bash
+   # MING-MOE
+   CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
+       --model_path {path_to_checkpoint} \ # 模型路径
+       --model_base {path_to_base_model} \ # 基座模型路径
+       --max-new-token 3072 # 输出最大长度
+
    # MING-1.8B
    CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
-       --model-path {path_to_checkpoint}  # 模型路径
-       --conv-template qwen 
+       --model_path {path_to_checkpoint} \ # 模型路径
        --max-new-token 2048 # 输出最大长度
 
    # MING-7B

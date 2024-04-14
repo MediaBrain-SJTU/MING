@@ -96,7 +96,7 @@ def eval_model(args):
     # pdb.set_trace()
 
     # else:
-    if "molora" in model_path:
+    if "moe" in model_path:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_molora_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load, expert_selection=args.expert_selection)
     else:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load)

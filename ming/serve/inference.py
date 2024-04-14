@@ -78,7 +78,10 @@ def chat_loop(model_path: str, model_base:str, device: str,
     # Model
     # model, tokenizer = load_model(model_path, device,
     #     num_gpus, max_gpu_memory, load_8bit, debug)
-    tokenizer, model, context_len, _ = load_molora_pretrained_model(model_path, model_base, None, use_logit_bias=None, only_load=None, expert_selection=None)
+    if "moe" in model_path.lower():
+        tokenizer, model, context_len, _ = load_molora_pretrained_model(model_path, model_base, None, use_logit_bias=None, only_load=None, expert_selection=None)
+    else:
+        tokenizer, model, context_len, _ = load_pretrained_model(model_path, model_base, None, use_logit_bias=None, only_load=None)
 
     model.config.use_cache = True
     model.eval()
