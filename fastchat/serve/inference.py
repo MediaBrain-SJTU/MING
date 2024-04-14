@@ -54,7 +54,7 @@ def load_model(model_path, device, num_gpus, max_gpu_memory="13GiB",
     if device == "cpu":
         kwargs = {}
     elif device == "cuda":
-        kwargs = {"torch_dtype": torch.float32}
+        kwargs = {"torch_dtype": torch.float16}
         if num_gpus == "auto":
             kwargs["device_map"] = "auto"
         else:
