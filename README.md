@@ -32,12 +32,11 @@
 ## 📄相关论文
 * MING-MOE技术报告
 
-  [comming soon]
+  [MING-MOE: Enhancing Medical Multi-Task Learning in Large Language Models with Sparse Mixture of Low-Rank Adapter Experts](https://arxiv.org/pdf/2404.09027.pdf)
 
 * 基于多智能体交互的大语言模型多轮问诊自动评估框架
 
-  [Automatic Interactive Evaluation for Large Language Models
-with State Aware Patient Simulator](https://arxiv.org/pdf/2403.08495.pdf)
+  [Automatic Interactive Evaluation for Large Language Models with State Aware Patient Simulator](https://arxiv.org/pdf/2403.08495.pdf)
 
 ## 💫更新
 * 🔥 [2024/04/14] 开源了基于Qwen1.5指令微调的专家混合模型MING-MOE
