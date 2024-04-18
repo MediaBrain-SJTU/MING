@@ -1,0 +1,3 @@
+# 忽略 temp 目录下的所有文件
+ming.egg-info/
+img/
