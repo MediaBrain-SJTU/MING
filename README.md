@@ -167,7 +167,7 @@
 
 ## 🪶贡献
 
-本项目由上海交通大学未来媒体网络协同创新中心和上海人工智能实验室智慧医疗中心合作研发。模型数据系统主要由廖育生，江书洋，刘泓呈，孟昱同完成，指导教师为[王钰](https://mediabrain.sjtu.edu.cn/yuwang/)副教授。
+本项目由上海交通大学未来媒体网络协同创新中心和上海人工智能实验室智慧医疗中心合作研发。模型数据系统主要由廖育生，江书洋，刘泓呈，孟昱同完成，指导教师为[王钰](https://yuwangsjtu.github.io)副教授。
 
 
 
@@ -182,13 +182,13 @@
 如果你使用了本项目的数据或者代码，请声明引用
 
 ```latex
-@misc{MING,
-  author={Yusheng Liao, Yutong Meng, Hongcheng Liu, Yu Wang, Yanfeng Wang},
-  title = {明医 (MING)：中文医疗问诊大模型},
-  year = {2023},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/MediaBrain-SJTU/MING}},
+@misc{liao2024mingmoe,
+      title={MING-MOE: Enhancing Medical Multi-Task Learning in Large Language Models with Sparse Mixture of Low-Rank Adapter Experts}, 
+      author={Yusheng Liao and Shuyang Jiang and Yu Wang and Yanfeng Wang},
+      year={2024},
+      eprint={2404.09027},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 ```
 
