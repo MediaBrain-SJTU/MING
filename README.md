@@ -192,3 +192,7 @@
 }
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MediaBrain-SJTU/MING&type=Date)](https://star-history.com/#MediaBrain-SJTU/MING&Date)
+
