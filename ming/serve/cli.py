@@ -105,7 +105,7 @@ def main(args):
     else:
         raise ValueError(f"Invalid style for console: {args.style}")
     try:
-        chat_loop(args.model_path, args.model_base, args.device, args.conv_template, args.temperature, args.max_new_tokens,args.beam_size,
+        chat_loop(args.model_path, args.model_base, args.device, args.conv_template, args.temperature, args.max_new_tokens, args.beam_size,
             chatio, args.debug)
     except KeyboardInterrupt:
         print("exit...")
@@ -115,15 +115,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_path", type=str, required=True,
         help="The path to the weights")
-    parser.add_argument("--model_base", type=str, required=True)
+    parser.add_argument("--model_base", type=str, default=None)
     parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps"], default="cuda")
     parser.add_argument("--conv_template", type=str, default="qwen",
         help="Conversation prompt template.")
     parser.add_argument("--temperature", type=float, default=0.7)
-    parser.add_argument("--max-new-tokens", type=int, default=1024)
+    parser.add_argument("--max_new_tokens", type=int, default=1024)
     parser.add_argument("--style", type=str, default="simple", choices=["simple", "rich"], help="Display style.")
     parser.add_argument("--top_p", type=float, default=1.0)
-    parser.add_argument("--beam-size", type=int, default=1)
+    parser.add_argument("--beam_size", type=int, default=1)
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
     main(args)
