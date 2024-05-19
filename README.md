@@ -122,7 +122,7 @@
 2. 下载模型参数并运行（要求单卡显存 >= 15G）
     * MING-MOE
    ```bash
-   CUDA_VISIBLE_DEVICES=0 python -m ming/serve/cli.py \
+   CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
        --model_path {path_to_checkpoint} \ # 模型路径
        --model_base {path_to_base_model} \ # 基座模型路径
        --max-new-token 3072 # 输出最大长度
@@ -130,14 +130,14 @@
 
    * MING-1.8B
    ```bash
-   CUDA_VISIBLE_DEVICES=0 python -m ming/serve/cli.py \
+   CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
        --model_path {path_to_checkpoint} \ # 模型路径
        --max-new-token 2048 # 输出最大长度
    ```
 
    * MING-7B
    ```bash
-   CUDA_VISIBLE_DEVICES=0 python -m ming/serve/cli.py \
+   CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
        --model-path {path_to_checkpoint} \ # 模型路径
        --conv_template bloom \ # prompt
        --max-new-token 512 \ # 输出最大长度
