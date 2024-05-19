@@ -452,11 +452,13 @@ def multiplechoice_acc(line):
                 all_index = all_index.replace(answer, "")
                 if f"{answer}对" not in line['text']:
                     return 0
-            if len(line['additional_info']['answer']) > 1:
+            # if len(line['additional_info']['answer']) > 1:
+            if True:
                 for o_answer in all_index:
                     if f"{o_answer}对" in line['text']:
                         return 0
             return 1
+
     else:
         pred = pred[0]
     
@@ -466,9 +468,10 @@ def multiplechoice_acc(line):
         all_index = all_index.replace(answer, "")
         if answer not in pred:
             return 0
-    if len(answer_list) > 1:
+    # if len(answer_list) > 1:
+    if True:
         for o_answer in all_index:
-            if f"{o_answer}." in pred:
+            if f"{o_answer}" in pred:
                 return 0
     return 1
 
@@ -596,8 +599,8 @@ if __name__ == "__main__":
             type_acc["type"].append("AVERAGE")
             type_acc["acc"].append(avg_acc)
 
-            import pdb
-            pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             df = pd.DataFrame(type_acc)
             df.to_csv(os.path.join(args.output_file.rsplit("/", 1)[0], "type_acc.csv"), index=False)
             print(f"Acc in {dataset_name}: {avg_acc}")
