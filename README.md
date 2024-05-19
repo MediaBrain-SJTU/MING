@@ -138,7 +138,7 @@
    * MING-7B
    ```bash
    CUDA_VISIBLE_DEVICES=0 python -m fastchat.serve.cli \
-       --model-path {path_to_checkpoint} \ # 模型路径
+       --model_path {path_to_checkpoint} \ # 模型路径
        --conv_template bloom \ # prompt
        --max-new-token 512 \ # 输出最大长度
        --beam-size 3 \ # beam search宽度
