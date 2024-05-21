@@ -182,6 +182,15 @@
 如果你使用了本项目的数据或者代码，请声明引用
 
 ```latex
+@article{liao2024ming,
+  title={MING-MOE: Enhancing Medical Multi-Task Learning in Large Language Models with Sparse Mixture of Low-Rank Adapter Experts},
+  author={Liao, Yusheng and Jiang, Shuyang and Wang, Yu and Wang, Yanfeng},
+  journal={arXiv preprint arXiv:2404.09027},
+  year={2024}
+}
+```
+
+```latex
 @misc{MING,
   author={Yusheng Liao, Yutong Meng, Hongcheng Liu, Yu Wang, Yanfeng Wang},
   title = {明医 (MING)：中文医疗问诊大模型},
