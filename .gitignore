@@ -5,6 +5,6 @@ img/
 datas
 logs
 
-# wandb/
+wandb
 
-# slurm-*
+slurm-*
