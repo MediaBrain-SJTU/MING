@@ -104,6 +104,10 @@ class TrainingArguments(transformers.TrainingArguments):
     lora_name_or_path: str = None
     inference_path: Optional[int] = field(default=1)
     soft_select: Optional[bool] = field(default=False)
+    
+    # orthogonal share
+    lamda_1: Optional[float] = field(default=0.5)
+    lamda_2: Optional[float] = field(default=0.)
 
 def maybe_zero_3(param, ignore_status=False, name=None):
     from deepspeed import zero

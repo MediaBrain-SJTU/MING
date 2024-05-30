@@ -2,12 +2,13 @@
 #SBATCH -J sft_clinical_qwen
 #SBATCH --partition=medai_llm
 #SBATCH -N1
-#SBATCH --quotatype=auto
-#SBATCH --gres=gpu:8
+#SBATCH --quotatype=reserved
+#SBATCH --gres=gpu:2
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks-per-node=1    
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
+#SBATCH --debug
 ###SBATCH --kill-on-bad-exit=1
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
@@ -15,12 +16,11 @@ nodes_array=($nodes)
 head_node=${nodes_array[0]}
 head_node_ip=$(srun -N1 -n1 -w "$head_node" hostname --ip-address)
 
-GPUS_PER_NODE=1
+GPUS_PER_NODE=2
 NNODES=$SLURM_NNODES
 
 echo Node IP: $head_node_ip nodes_array: $nodes_array
 srun bash -c 'echo $SLURMD_NODENAME-$SLURM_JOB_GPUS' # 打印出不同机器上分配的显卡编号
-bash ~/add_oss.sh
 
 export LOGLEVEL=INFO
 export NCCL_DEBUG=ERROR
@@ -37,7 +37,7 @@ export MASTER_PORT=$((RANDOM % 101 + 20000))
 DATA_PATH=${TASK_PATH}/${TRAINING_DATA}
 
 SCRIPT_PATH=$(realpath $0)
-mkdir ${SAVE_PATH}
+mkdir -p ${SAVE_PATH}
 cp -rf ${SCRIPT_PATH} ${SAVE_PATH}
 
 srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
@@ -72,7 +72,9 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --gradient_checkpointing True \
     --dataloader_num_workers 1 \
     --lazy_preprocess True \
-    --report_to wandb
+    --report_to wandb \
+    --lamda_1 0.5 \
+    --lamda_2 0.
 
 
 

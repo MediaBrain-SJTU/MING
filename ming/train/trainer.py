@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from torch.utils.data import Sampler
-
+from transformers.trainer import *
 from transformers import Trainer
 from transformers.trainer import  TRAINER_STATE_NAME
 from transformers.trainer import (
@@ -13,9 +13,11 @@ from transformers.trainer import (
     ALL_LAYERNORM_LAYERS,
     logger,
 )
-from typing import List, Optional
+from typing import *
 import numpy as np
 import shutil
+import deepspeed
+from deepspeed.utils import safe_get_full_fp32_param, safe_get_full_grad, safe_get_local_grad, safe_get_local_fp32_param
 
 def maybe_zero_3(param, ignore_status=False, name=None):
     from deepspeed import zero
@@ -179,3 +181,103 @@ class MINGTrainer(Trainer):
             pass
         else:
             super(MINGTrainer, self)._save(output_dir, state_dict)
+    
+    def training_step(self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]]) -> torch.Tensor:
+        """
+        Perform a training step on a batch of inputs.
+
+        Subclass and override to inject custom behavior.
+
+        Args:
+            model (`nn.Module`):
+                The model to train.
+            inputs (`Dict[str, Union[torch.Tensor, Any]]`):
+                The inputs and targets of the model.
+
+                The dictionary will be unpacked before being fed to the model. Most models expect the targets under the
+                argument `labels`. Check your model's documentation for all accepted arguments.
+
+        Return:
+            `torch.Tensor`: The tensor with training loss on this batch.
+        """
+        model.train()
+        inputs = self._prepare_inputs(inputs)
+
+        if is_sagemaker_mp_enabled():
+            loss_mb = smp_forward_backward(model, inputs, self.args.gradient_accumulation_steps)
+            return loss_mb.reduce_mean().detach().to(self.args.device)
+
+        with self.compute_loss_context_manager():
+            loss = self.compute_loss(model, inputs)
+
+        if self.args.n_gpu > 1:
+            loss = loss.mean()  # mean() to average on multi-gpu parallel training
+
+        if self.args.gradient_accumulation_steps > 1 and not self.deepspeed:
+            # deepspeed handles loss scaling by gradient_accumulation_steps in its `backward`
+            loss = loss / self.args.gradient_accumulation_steps
+        
+        ########################### Regularization ##########################
+        orthogonal_loss = torch.tensor(0.).to(model.device)
+        for name, param in self.model.state_dict().items():
+            if "share_experts" in name and "lora_A" in name:
+                # find all params that start with name.split("share_experts")[0]
+                prefix = name.split("share_experts")[0]
+                for name_, param_ in self.model.state_dict().items():
+                    if prefix + "experts" in name_ and "lora_A" in name_:
+                        # print(name, name_)
+                        # print(param.shape, param_.shape)
+                        # print(param)
+                        # param = safe_get_full_fp32_param(param=param)
+                        # param_ = safe_get_full_fp32_param(param=param_)
+                        # print(param)
+                        # print(param, param_)
+                        # orthogonal_loss += torch.abs(torch.mm(param, param_.transpose(0, 1))).sum() # [r * dim] * [dim * r]
+                        with deepspeed.zero.GatheredParameters(param):
+                            with deepspeed.zero.GatheredParameters(param_):
+                                # print(name, name_)
+                                orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
+                        #         if param is not None and param_ is not None:
+                        #             print(param.shape, param_.shape)
+                        # try:
+                        # param = 
+                        # orthogonal_loss += torch.abs(torch.mm(param, param.transpose(0, -1))).sum() # [r * dim] * [dim * r]
+
+                # for name_, param_ in self.model.named_parameters():
+                #     if "experts" in name_ and name.split("share_experts")[0] == name_.split("experts")[0]:
+                #         # for any param.lora_A and name_.
+                        
+                #         orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
+                #         break # target modules have been matched
+        # l2-normalization for loranew_A/B
+
+
+        lamda_1 = self.args.lamda_1
+
+
+        logger.info(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
+
+        print(loss.item(), orthogonal_loss.item())
+        floss = loss + orthogonal_loss * lamda_1
+
+        ######################################################################
+
+        # if self.do_grad_scaling:
+        #     self.scaler.scale(loss).backward()
+        # elif self.use_apex:
+        #     with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+        #         scaled_loss.backward()
+        # elif self.deepspeed:
+        #     # loss gets scaled under gradient_accumulation_steps in deepspeed
+        #     loss = self.deepspeed.backward(loss)
+        # else:
+        #     loss.backward()
+
+        # return loss.detach()
+        if self.use_apex:
+            with amp.scale_loss(floss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            self.accelerator.backward(floss)
+
+        return loss.detach() / self.args.gradient_accumulation_steps + orthogonal_loss * lamda_1

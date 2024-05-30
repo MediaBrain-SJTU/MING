@@ -24,6 +24,7 @@ ming/eval/gt_evaluator.py
 ming/eval/huatuo_med_qa.py
 ming/eval/merge_lora_molora_weights.py
 ming/eval/model_diverse_gen.py
+ming/eval/model_diverse_gen_batch.py
 ming/eval/model_gen_vllm.py
 ming/eval/model_med_qa.py
 ming/eval/model_mmedbench_qa.py
@@ -38,6 +39,7 @@ ming/eval/rouge/rouge.py
 ming/model/__init__.py
 ming/model/builder.py
 ming/model/modeling_molora_qwen.py
+ming/model/modeling_molora_qwen_vllm.py
 ming/model/utils.py
 ming/serve/__init__.py
 ming/serve/cli.py
