@@ -1,5 +1,0 @@
-fusermount: failed to unmount /mnt/petrelfs/liaoyusheng/oss: Device or resource busy
-Processing ceval_cot
-srun: error: SH-IDC1-10-140-0-190: task 0: Exited with exit code 1
-Evaluating ceval_cot
-srun: error: SH-IDC1-10-140-0-190: task 0: Exited with exit code 1

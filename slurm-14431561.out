@@ -1,7 +1,0 @@
-Processing CBLUE
-srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
-srun: Easily find out why your job was killed by following the link below:
-	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
-srun: got SIGCONT
-slurmstepd: error: *** JOB 14431561 ON SH-IDC1-10-140-0-177 CANCELLED AT 2024-05-29T14:53:18 ***
-srun: forcing job termination

@@ -1,8 +1,0 @@
-./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert/only_share/cmmlu_cot
-Processing cmmlu_cot
-srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
-srun: Easily find out why your job was killed by following the link below:
-	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
-srun: got SIGCONT
-slurmstepd: error: *** JOB 14431564 ON SH-IDC1-10-140-0-177 CANCELLED AT 2024-05-29T14:53:21 ***
-srun: forcing job termination

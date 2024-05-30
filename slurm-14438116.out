@@ -1,8 +1,0 @@
-./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert_2/only_share/CBLUE
-Processing CBLUE
-srun: got SIGCONT
-srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
-slurmstepd: error: *** JOB 14438116 ON SH-IDC1-10-140-0-230 CANCELLED AT 2024-05-29T19:25:56 ***
-srun: Easily find out why your job was killed by following the link below:
-	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
-srun: forcing job termination

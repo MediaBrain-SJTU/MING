@@ -1,5 +1,0 @@
-fusermount: entry for /mnt/petrelfs/liaoyusheng/oss not found in /etc/mtab
-Processing PLE_TCM_cot
-srun: error: SH-IDC1-10-140-0-197: task 0: Exited with exit code 1
-Evaluating PLE_TCM_cot
-srun: error: SH-IDC1-10-140-0-197: task 0: Exited with exit code 1

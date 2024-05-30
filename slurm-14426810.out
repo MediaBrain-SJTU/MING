@@ -1,7 +1,0 @@
-fusermount: entry for /mnt/petrelfs/liaoyusheng/oss not found in /etc/mtab
-Processing PLE_Pharmacy_cot
-srun: error: SH-IDC1-10-140-0-190: task 0: Exited with exit code 1
-Evaluating PLE_Pharmacy_cot
-srun: Job 14426810 step creation temporarily disabled, retrying (Requested nodes are busy)
-srun: Step created for job 14426810
-srun: error: SH-IDC1-10-140-0-190: task 0: Exited with exit code 1
