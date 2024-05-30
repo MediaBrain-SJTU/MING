@@ -31,6 +31,7 @@ class BaseModelOutputWithPastLogitBias(ModelOutput):
     hidden_states: Optional[Tuple[torch.FloatTensor, ...]] = None
     attentions: Optional[Tuple[torch.FloatTensor, ...]] = None
     logit_bias: Optional[torch.FloatTensor] = None
+    all_lbl_loss: Optional[torch.FloatTensor] = None
 
 class MoLoRAQwenMLPDeploy(Qwen2MLP):
     def __init__(self, config):
@@ -44,39 +45,51 @@ class MoLoRAQwenMLPDeploy(Qwen2MLP):
             "share_expert": getattr(config, "share_expert", False),
             "expert_sampling": True if config.expert_selection == 'sampling' else False,
             "use_rslora": getattr(config, "use_rslora", False),
-            "use_logit_sum": getattr(config, "output_logit_bias", False),
+            "enable_router_loss": getattr(config, "enable_router_loss", False),
+            "use_lbl_loss": getattr(config, "use_lbl_loss", False)
         }
-        self.use_logit_sum = params['use_logit_sum']
+        self.enable_router_loss = params['enable_router_loss']
+        self.use_lbl_loss = params["use_lbl_loss"]
         self.gate_proj = MoLoRALinear(self.hidden_size, self.intermediate_size, bias=False,
                                       **params)
         self.up_proj = MoLoRALinear(self.hidden_size, self.intermediate_size, bias=False, **params)
         self.down_proj = MoLoRALinear(self.intermediate_size, self.hidden_size, bias=False, **params)
     
     def forward(self, x):
-        if self.use_logit_sum:
+        if self.enable_router_loss:
             gate_output, gate_logit_sum = self.gate_proj(x)
             up_output, up_logit_sum = self.up_proj(x)
             down_output, down_logit_sum = self.down_proj(self.act_fn(gate_output) * up_output)
-            # NOTE: current average the three weights logit sum, may use a nontrivial way
-            # leave for future research space
             logit_sum = (gate_logit_sum + up_logit_sum + down_logit_sum) / 3
             return down_output, logit_sum
+        elif self.use_lbl_loss:
+            gate_output, gate_lbl_loss = self.gate_proj(x)
+            up_output, up_lbl_loss = self.up_proj(x)
+            down_output, down_lbl_loss = self.down_proj(self.act_fn(gate_output) * up_output)
+            lbl_loss = (gate_lbl_loss + up_lbl_loss + down_lbl_loss) / 3
+            return down_output, lbl_loss
         else:
             return super().forward(x)
         
 class MoLoRAQwenMLP(Qwen2MLP):
     def __init__(self, config):
         super().__init__(config)
-        self.use_logit_sum = getattr(config, "output_logit_bias", False)
+        self.enable_router_loss = getattr(config, "enable_router_loss", False)
+        self.use_lbl_loss = getattr(config, "use_lbl_loss", False)
     
     def forward(self, x):
-        if self.use_logit_sum:
+        if self.enable_router_loss:
             gate_output, gate_logit_sum = self.gate_proj(x)
             up_output, up_logit_sum = self.up_proj(x)
             down_output, down_logit_sum = self.down_proj(self.act_fn(gate_output) * up_output)
-            # NOTE: current stack the logit sum
-            logit_sum = torch.stack([gate_logit_sum, up_logit_sum, down_logit_sum], dim=0)
+            logit_sum = (gate_logit_sum + up_logit_sum + down_logit_sum) / 3
             return down_output, logit_sum
+        elif self.use_lbl_loss:
+            gate_output, gate_lbl_loss = self.gate_proj(x)
+            up_output, up_lbl_loss = self.up_proj(x)
+            down_output, down_lbl_loss = self.down_proj(self.act_fn(gate_output) * up_output)
+            lbl_loss = (gate_lbl_loss + up_lbl_loss + down_lbl_loss) / 3
+            return down_output, lbl_loss
         else:
             return super().forward(x)
 
@@ -84,7 +97,6 @@ class MoLoRAQwenDecoderLayer(Qwen2DecoderLayer):
     def __init__(self, config: Qwen2Config, layer_idx: int):
         super().__init__(config, layer_idx)
         self.mlp = MoLoRAQwenMLP(config)
-        
         self.config = config
     
     def forward(
@@ -95,7 +107,8 @@ class MoLoRAQwenDecoderLayer(Qwen2DecoderLayer):
         past_key_value: Optional[Tuple[torch.Tensor]] = None,
         output_attentions: Optional[bool] = False,
         use_cache: Optional[bool] = False,
-        output_logit_bias: Optional[bool] = False,
+        enable_router_loss: Optional[bool] = False,
+        use_lbl_loss: Optional[bool] = False,
         **kwargs,
     ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
         if "padding_mask" in kwargs:
@@ -135,10 +148,14 @@ class MoLoRAQwenDecoderLayer(Qwen2DecoderLayer):
         # Fully Connected
         residual = hidden_states
         hidden_states = self.post_attention_layernorm(hidden_states)
-        if output_logit_bias:
+        if enable_router_loss:
             hidden_states, logit_sum = self.mlp(hidden_states)
+        elif use_lbl_loss:
+            hidden_states, lbl_loss = self.mlp(hidden_states)
         else:
             hidden_states = self.mlp(hidden_states)
+        
+        # print("use lbl loss: ", use_lbl_loss)
         hidden_states = residual + hidden_states
 
         outputs = (hidden_states,)
@@ -149,8 +166,11 @@ class MoLoRAQwenDecoderLayer(Qwen2DecoderLayer):
         if use_cache:
             outputs += (present_key_value,)
 
-        if output_logit_bias:
+        if enable_router_loss:
             outputs += (logit_sum,)
+        
+        if use_lbl_loss:
+            outputs += (lbl_loss,)
         return outputs
     
 
@@ -173,14 +193,16 @@ class MoLoRAQwenModel(Qwen2Model):
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
-        output_logit_bias: Optional[bool] = None,
+        use_lbl_loss: Optional[bool] = None,
+        enable_router_loss: Optional[bool] = None,
     ) -> Union[Tuple, Union[BaseModelOutputWithPastLogitBias, BaseModelOutputWithPast]]:
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
         )
         use_cache = use_cache if use_cache is not None else self.config.use_cache
-        output_logit_bias = output_logit_bias if output_logit_bias is not None else self.config.output_logit_bias
+        enable_router_loss = enable_router_loss if enable_router_loss is not None else self.config.enable_router_loss
+        use_lbl_loss = use_lbl_loss if use_lbl_loss is not None else self.config.use_lbl_loss
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         # retrieve input_ids and inputs_embeds
@@ -256,7 +278,8 @@ class MoLoRAQwenModel(Qwen2Model):
         # decoder layers
         all_hidden_states = () if output_hidden_states else None
         all_self_attns = () if output_attentions else None
-        all_logit_bias = () if output_logit_bias else None
+        all_logit_bias = () if enable_router_loss else None
+        all_lbl_loss = () if use_lbl_loss else None
         next_decoder_cache = None
 
         for decoder_layer in self.layers:
@@ -272,7 +295,8 @@ class MoLoRAQwenModel(Qwen2Model):
                     past_key_values,
                     output_attentions,
                     use_cache,
-                    output_logit_bias,
+                    enable_router_loss,
+                    use_lbl_loss,
                 )
             else:
                 layer_outputs = decoder_layer(
@@ -282,7 +306,8 @@ class MoLoRAQwenModel(Qwen2Model):
                     past_key_value=past_key_values,
                     output_attentions=output_attentions,
                     use_cache=use_cache,
-                    output_logit_bias=output_logit_bias
+                    enable_router_loss=enable_router_loss,
+                    use_lbl_loss=use_lbl_loss
                 )
 
             hidden_states = layer_outputs[0]
@@ -293,8 +318,11 @@ class MoLoRAQwenModel(Qwen2Model):
             if output_attentions:
                 all_self_attns += (layer_outputs[1],)
             
-            if output_logit_bias:
+            if enable_router_loss:
                 all_logit_bias += (layer_outputs[-1],)
+            
+            if use_lbl_loss:
+                all_lbl_loss += (layer_outputs[-1],)
 
         hidden_states = self.norm(hidden_states)
 
@@ -307,13 +335,15 @@ class MoLoRAQwenModel(Qwen2Model):
             next_cache = next_decoder_cache.to_legacy_cache() if use_legacy_cache else next_decoder_cache
 
         if not return_dict:
-            return tuple(v for v in [hidden_states, next_cache, all_hidden_states, all_self_attns, all_logit_bias] if v is not None)
+            return tuple(v for v in [hidden_states, next_cache, all_hidden_states, all_self_attns, all_logit_bias, all_lbl_loss] if v is not None)
         return BaseModelOutputWithPastLogitBias(
             last_hidden_state=hidden_states,
             past_key_values=next_cache,
             hidden_states=all_hidden_states,
             attentions=all_self_attns,
             logit_bias=all_logit_bias,
+            all_lbl_loss=all_lbl_loss,
+
         )
         
 

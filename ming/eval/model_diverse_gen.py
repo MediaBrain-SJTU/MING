@@ -43,7 +43,7 @@ class CustomDataset:
         question = line['conversations'][0]['value']
         answer = line['conversations'][1]['value'] if len(line['conversations']) > 1 else None
 
-        additional_info = line['eval']
+        additional_info = line['eval'] if 'eval' in line else None
 
         
         # input_ids = tokenizer_image_token(prompt, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt')
@@ -96,7 +96,7 @@ def eval_model(args):
     # pdb.set_trace()
 
     # else:
-    if "moe" in model_path:
+    if "molora" in model_path:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_molora_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load, expert_selection=args.expert_selection)
     else:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load)
@@ -148,32 +148,33 @@ def eval_model(args):
     #         # print(f"register {layer.__name__} hook")
     #         break
     task_specific_prompt = ""
-    if args.question_file.split("/")[-1].split(".")[0] == 'apps':
+    dataset_name = args.question_file.split("/")[-1].split(".")[0]
+    if dataset_name == 'apps':
         task_specific_prompt = "\n\nPlease use python language to answer this problem. You should process stdin and stdout with input() and print():"
-    elif args.question_file.split("/")[-1].split(".")[0] == 'bbh':
+    elif dataset_name == 'bbh':
         task_specific_prompt = "\n\nPlease format the final answer at the end of the response as: The answer is {answer}. Let's think step by step."
-    elif args.question_file.split("/")[-1].split(".")[0] == 'gsm8k':
+    elif dataset_name == 'gsm8k':
         task_specific_prompt = "\n\nPlease format the final answer at the end of the response as: The answer is {answer}."
-    elif args.question_file.split("/")[-1].split(".")[0] == 'mmedbench_en_cot':
+    elif dataset_name == 'mmedbench_en_cot':
         task_specific_prompt = "\n\nPlease format the final answer at the end of the response as: The answer is {answer}."
-    elif args.question_file.split("/")[-1].split(".")[0] in ['mmedbench_zh_cot', "PLE_Pharmacy_cot", "PLE_TCM_cot"]:
+    elif dataset_name in ['mmedbench_zh_cot', "PLE_Pharmacy_cot", "PLE_TCM_cot"]:
         task_specific_prompt = "\n\n请在回答的最后用以下格式回答：答案为{answer}。"
-    elif args.question_file.split("/")[-1].split(".")[0] == 'math' or args.question_file.split("/")[-1].split(".")[0] == 'math_500':
+    elif dataset_name == 'math' or dataset_name == 'math_500':
         # task_specific_prompt = "\n\nPlease wrap your final answer with \\box{}."
         task_specific_prompt = "\n\nPlease format the final answer at the end of the response as:  The answer is {answer}."
-    elif args.question_file.split("/")[-1].split(".")[0] in ["winogrande"]:
+    elif dataset_name in ["winogrande"]:
         sequence_bias = {get_tokens_as_tuple(x): args.logit_score for x in ["A", "B"]}
         args.max_new_tokens = 1
         task_specific_prompt = "\n\nPlease answer with option letter directly, do not output other infomation."
-    elif args.question_file.split("/")[-1].split(".")[0] in ["race_high", "race_middle", "mmedbench_en", "mmlu", "arc"]:
+    elif dataset_name in ["race_high", "race_middle", "mmedbench_en", "mmlu", "arc"]:
         sequence_bias = {get_tokens_as_tuple(x): args.logit_score for x in ["A", "B", "C", "D"]}
         args.max_new_tokens = 1
         task_specific_prompt = "\n\nPlease answer with option letter directly, do not output other infomation."
-    elif args.question_file.split("/")[-1].split(".")[0] in ["mmedbench_zh", "ceval", "cmmlu", "PLE_Pharmacy", "PLE_TCM"]:
+    elif dataset_name in ["mmedbench_zh", "ceval", "cmmlu", "PLE_Pharmacy", "PLE_TCM"]:
         sequence_bias = {get_tokens_as_tuple(x): args.logit_score for x in ["A", "B", "C", "D"]}
         args.max_new_tokens = 1
         task_specific_prompt = "\n\n请用选项的字母直接回答，不要输出其他信息："
-    elif args.question_file.split("/")[-1].split(".")[0] == "humaneval":
+    elif dataset_name == "humaneval":
         task_specific_prompt = "\n\nPlease complete the code within the code block ```python```."
         # task_specific_prompt = "\n\nPlease answer with option letter directly, do not output other infomation."
     dataset = CustomDataset(questions)
@@ -197,13 +198,10 @@ def eval_model(args):
         conv.append_message(conv.roles[0], cur_prompt)
         conv.append_message(conv.roles[1], None)
         prompt = conv.get_prompt()
+        # print("[FIRST INPUT]: ", prompt)
         input_ids = tokenizer(prompt, return_tensors='pt').input_ids
-        
         stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style != SeparatorStyle.TWO else conv_templates[args.conv_mode].sep2
         input_ids = input_ids.to(device='cuda', non_blocking=True)
-
-        # import pdb
-        # pdb.set_trace()
 
         with torch.inference_mode():
             output_ids = model.generate(
@@ -225,7 +223,55 @@ def eval_model(args):
         outputs = outputs.strip()
         if outputs.endswith(stop_str):
             outputs = outputs[:-len(stop_str)]
-        outputs = outputs.strip()
+        
+        # print("[FIRST OUTPUT]: ", outputs)
+
+        if "cot" in dataset_name:
+            if "The answer is" in cur_prompt:
+                cot_prompt = "\nThe answer is "
+            elif "答案为" in cur_prompt:
+                cot_prompt = "\n答案为"
+
+            conv = conv_templates[args.conv_mode].copy()
+            conv.append_message(conv.roles[0], cur_prompt)
+            add_char = " " if outputs.endswith(".") else ". "
+            conv.append_message(conv.roles[1], outputs + f"{add_char}{cot_prompt}")
+            cut_length = len(conv.sep2)
+            cot_prompt = conv.get_prompt()[:-cut_length]
+            # print("[SECOND INPUT]: ", cot_prompt)
+            input_ids = tokenizer(cot_prompt, return_tensors='pt').input_ids.to(device='cuda', non_blocking=True)
+            
+            if dataset_name not in ["CMExam_cot", "PLE_TCM_cot", "PLE_Pharmacy_cot", "CMB_val_cot"]:
+                if "E." in cur_prompt or "(E)" in cur_prompt:
+                    cot_sequence_bias = {get_tokens_as_tuple(x): args.logit_score for x in ["A", "B", "C", "D", "E"]}
+                else:
+                    cot_sequence_bias = {get_tokens_as_tuple(x): args.logit_score for x in ["A", "B", "C", "D"]}
+                cot_max_new_tokens = 1
+            else:
+                cot_sequence_bias = None
+                cot_max_new_tokens = 10
+            
+            with torch.inference_mode():
+                output_ids = model.generate(
+                input_ids,
+                do_sample=True if args.temperature > 0 else False,
+                temperature=args.temperature,
+                top_p=args.top_p,
+                num_beams=args.num_beams,
+                max_new_tokens=cot_max_new_tokens,
+                eos_token_id=tokenizer("<|im_end|>")["input_ids"][-1],
+                sequence_bias=cot_sequence_bias,
+                use_cache=True)
+
+            n_diff_input_output = (input_ids != output_ids[:, :input_ids.shape[1]]).sum().item()
+            if n_diff_input_output > 0:
+                print(f'[Warning] {n_diff_input_output} output_ids are not the same as the input_ids')
+            # print("all: ", tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0])
+            outputs = tokenizer.batch_decode(output_ids[:, input_token_len:], skip_special_tokens=True)[0]
+            # print("only output: ", outputs)
+            outputs = outputs.strip()
+            if outputs.endswith(stop_str):
+                outputs = outputs[:-len(stop_str)]
 
         # ans_id = shortuuid.uuid()
         ans_file.write(json.dumps({"prompt": cur_prompt,

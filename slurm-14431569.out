@@ -1,0 +1,8 @@
+./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert/only_share/PLE_Pharmacy_cot
+Processing PLE_Pharmacy_cot
+srun: got SIGCONT
+slurmstepd: error: *** JOB 14431569 ON SH-IDC1-10-140-0-222 CANCELLED AT 2024-05-29T14:53:24 ***
+srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
+srun: Easily find out why your job was killed by following the link below:
+	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
+srun: forcing job termination

@@ -1,0 +1,21 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-1.8B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/492083 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+  0%|          | 1/492083 [00:04<637:30:24,  4.66s/it]
+
+  0%|          | 2/492083 [00:42<3337:30:26, 24.42s/it]
+
+  0%|          | 3/492083 [00:44<1943:02:04, 14.22s/it]
+
+  0%|          | 4/492083 [00:47<1287:01:38,  9.42s/it]
+
+  0%|          | 5/492083 [00:49<923:51:35,  6.76s/it]
+
+  0%|          | 6/492083 [00:51<704:12:49,  5.15s/it]
+
+  0%|          | 7/492083 [00:53<565:27:03,  4.14s/it]
+
+  0%|          | 8/492083 [00:55<474:41:51,  3.47s/it]
+
+  0%|          | 9/492083 [00:57<414:27:55,  3.03s/it]

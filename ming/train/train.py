@@ -36,7 +36,7 @@ from transformers.trainer_pt_utils import LabelSmoother
 from torch.utils.data import Dataset
 from ming.conversations import get_default_conv_template, SeparatorStyle
 import pdb
-from ming.model.utils import get_mixoflora_model, multiple_path_forward
+from ming.model.utils import get_mixoflora_model, multiple_path_forward, lbl_loss_forward
 import warnings
 from transformers.models.qwen2.modeling_qwen2 import Qwen2DecoderLayer
 from ming.train.trainer import MINGTrainer
@@ -58,9 +58,13 @@ class ModelArguments:
     num_experts_per_token: Optional[int] = field(default=1)
     expert_selection: Optional[str] = field(default="top_k", metadata={"help": "top_k or sampling"})
     share_expert: Optional[bool] = field(default=False)
-    output_logit_bias: Optional[bool] = field(default=False)
+    num_share_experts: Optional[int] = field(default=1)
+    enable_router_loss: Optional[bool] = field(default=False)
     router_loss_coeff: Optional[float] = field(default="0.")
     router_loss_mode : Optional[str] = field(default="contrastive", metadata={"help": "contrastive or softmax"})
+
+    use_lbl_loss: Optional[bool] = field(default=False)
+    lbl_loss_coeff: Optional[float] = field(default="0.")
 
 @dataclass
 class DataArguments:
@@ -97,6 +101,7 @@ class TrainingArguments(transformers.TrainingArguments):
     lora_use_rs: bool = False
     
     # our method
+    lora_name_or_path: str = None
     inference_path: Optional[int] = field(default=1)
     soft_select: Optional[bool] = field(default=False)
 
@@ -470,23 +475,32 @@ def train():
             )
         ))
 
+    # add new config
     config = AutoConfig.from_pretrained(model_args.model_name_or_path, cache_dir=training_args.cache_dir, trust_remote_code=True)
-    config.output_logit_bias = model_args.output_logit_bias
+    config.enable_router_loss = model_args.enable_router_loss
     config.router_loss_coeff = model_args.router_loss_coeff
     config.router_loss_mode = model_args.router_loss_mode
+    config.use_lbl_loss = model_args.use_lbl_loss
+    config.lbl_loss_coeff = model_args.lbl_loss_coeff
     
     if model_args.num_experts > 1:
         config.num_experts = model_args.num_experts
         config.num_experts_per_token = model_args.num_experts_per_token
         config.expert_selection = model_args.expert_selection
         config.share_expert = model_args.share_expert
+        config.num_share_experts = model_args.num_share_experts
         
     if training_args.inference_path > 1:
+        print("redefine the model.forward as multiple_path_forward")
         config.inference_path = training_args.inference_path
         config.soft_select = training_args.soft_select
         
         # replace the qwen2 model's forward to current modified forward function
         MoLoRAQwenForCausalLM.forward = multiple_path_forward
+    
+    if model_args.use_lbl_loss:
+        print("redefine the model.forward as lbl_loss_forward")
+        MoLoRAQwenForCausalLM.forward = lbl_loss_forward
 
     model = MoLoRAQwenForCausalLM.from_pretrained(model_args.model_name_or_path, config=config, **bnb_model_from_pretrained_args)    
     model.config.use_cache = False
@@ -539,9 +553,9 @@ def train():
         
     if model_args.num_experts > 1:
         # get mix of lora model
-        if model_args.share_expert:
-            warnings.warn("Not support expert sharing yet; back to non-sharing mode")
-        model = get_mixoflora_model(model, model_args.num_experts, model_args.num_experts_per_token, model_args.expert_selection, use_logit_sum=model_args.output_logit_bias, lora_config=lora_config)
+        # if model_args.share_expert:
+        #     warnings.warn("Not support expert sharing yet; back to non-sharing mode")
+        model = get_mixoflora_model(model, model_args, lora_config=lora_config, lora_name_or_path=training_args.lora_name_or_path)
         rank0_print(model.config)
         rank0_print(model)
         training_args.molora = True 

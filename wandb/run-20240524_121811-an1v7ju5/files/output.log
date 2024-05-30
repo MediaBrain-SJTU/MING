@@ -1,0 +1,664 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-7B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/7689 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+  0%|          | 1/7689 [00:12<26:29:22, 12.40s/it]
+
+  0%|          | 2/7689 [00:32<36:28:20, 17.08s/it]
+
+  0%|          | 3/7689 [00:44<31:12:00, 14.61s/it]
+{'loss': 2.1026, 'grad_norm': 1.3990715030266025, 'learning_rate': 2.5974025974025976e-06, 'epoch': 0.0}
+
+
+  0%|          | 5/7689 [01:02<23:44:34, 11.12s/it]
+
+  0%|          | 6/7689 [01:16<25:43:54, 12.06s/it]
+{'loss': 2.5102, 'grad_norm': 1.6860272985980236, 'learning_rate': 5.194805194805195e-06, 'epoch': 0.0}
+
+  0%|          | 7/7689 [01:27<24:46:55, 11.61s/it]
+
+  0%|          | 8/7689 [01:39<25:25:02, 11.91s/it]
+
+
+  0%|          | 10/7689 [01:52<19:04:57,  8.95s/it]
+{'loss': 2.5104, 'grad_norm': 1.680587222680634, 'learning_rate': 8.658008658008657e-06, 'epoch': 0.0}
+
+
+  0%|          | 12/7689 [02:12<19:39:53,  9.22s/it]
+
+  0%|          | 13/7689 [02:28<23:54:52, 11.22s/it]
+
+  0%|          | 14/7689 [02:36<21:56:21, 10.29s/it]
+
+  0%|          | 15/7689 [02:46<21:35:19, 10.13s/it]
+{'loss': 2.0714, 'grad_norm': 1.6734809656520282, 'learning_rate': 1.2987012987012986e-05, 'epoch': 0.0}
+
+
+  0%|          | 17/7689 [03:07<21:54:36, 10.28s/it]
+{'loss': 1.9694, 'grad_norm': 1.6384934687477488, 'learning_rate': 1.471861471861472e-05, 'epoch': 0.0}
+
+  0%|          | 18/7689 [03:13<19:35:52,  9.20s/it]
+
+  0%|          | 19/7689 [03:23<20:03:00,  9.41s/it]
+
+
+  0%|          | 21/7689 [03:36<17:03:24,  8.01s/it]
+{'loss': 2.1188, 'grad_norm': 1.641669395254122, 'learning_rate': 1.8181818181818182e-05, 'epoch': 0.0}
+
+  0%|          | 22/7689 [03:47<19:02:36,  8.94s/it]
+
+
+  0%|          | 24/7689 [04:01<16:28:25,  7.74s/it]
+{'loss': 1.9919, 'grad_norm': 1.7910317118482444, 'learning_rate': 2.077922077922078e-05, 'epoch': 0.0}
+
+  0%|          | 25/7689 [04:09<16:59:51,  7.98s/it]
+
+  0%|          | 26/7689 [04:17<17:08:50,  8.06s/it]
+
+  0%|          | 27/7689 [04:31<20:40:00,  9.71s/it]
+
+  0%|          | 28/7689 [04:39<19:49:58,  9.32s/it]
+
+  0%|          | 29/7689 [04:47<18:47:57,  8.84s/it]
+
+
+  0%|          | 31/7689 [05:04<18:38:07,  8.76s/it]
+
+  0%|          | 32/7689 [05:10<17:02:00,  8.01s/it]
+
+  0%|          | 33/7689 [05:17<15:52:58,  7.47s/it]
+{'loss': 1.6286, 'grad_norm': 0.39245359687619663, 'learning_rate': 2.857142857142857e-05, 'epoch': 0.0}
+
+
+  0%|          | 35/7689 [05:37<18:00:08,  8.47s/it]
+
+  0%|          | 36/7689 [05:47<19:07:30,  9.00s/it]
+
+  0%|          | 37/7689 [05:53<16:58:25,  7.99s/it]
+{'loss': 1.6051, 'grad_norm': 0.4554545301183062, 'learning_rate': 3.2034632034632034e-05, 'epoch': 0.0}
+
+  0%|          | 38/7689 [06:06<20:31:29,  9.66s/it]
+
+
+  1%|          | 40/7689 [06:27<21:13:46,  9.99s/it]
+{'loss': 1.4329, 'grad_norm': 0.40537672465134506, 'learning_rate': 3.463203463203463e-05, 'epoch': 0.01}
+
+
+  1%|          | 42/7689 [06:43<19:04:06,  8.98s/it]
+
+  1%|          | 43/7689 [06:53<19:54:52,  9.38s/it]
+{'loss': 1.2749, 'grad_norm': 0.35352332758714333, 'learning_rate': 3.722943722943723e-05, 'epoch': 0.01}
+
+  1%|          | 44/7689 [07:04<20:52:29,  9.83s/it]
+
+  1%|          | 45/7689 [07:20<24:48:48, 11.69s/it]
+
+
+  1%|          | 47/7689 [07:37<21:33:21, 10.15s/it]
+{'loss': 1.2801, 'grad_norm': 0.2917642257267631, 'learning_rate': 4.0692640692640695e-05, 'epoch': 0.01}
+
+  1%|          | 48/7689 [07:44<19:10:26,  9.03s/it]
+
+  1%|          | 49/7689 [07:58<22:39:17, 10.68s/it]
+
+  1%|          | 50/7689 [08:09<23:08:07, 10.90s/it]
+
+
+  1%|          | 52/7689 [08:35<24:35:01, 11.59s/it]
+{'loss': 1.2865, 'grad_norm': 0.2670782614377355, 'learning_rate': 4.5021645021645025e-05, 'epoch': 0.01}
+
+  1%|          | 53/7689 [08:40<20:26:53,  9.64s/it]
+
+  1%|          | 54/7689 [08:47<18:53:06,  8.90s/it]
+
+  1%|          | 55/7689 [08:58<19:38:25,  9.26s/it]
+
+
+  1%|          | 57/7689 [09:09<15:28:32,  7.30s/it]
+{'loss': 1.332, 'grad_norm': 0.21914674752439348, 'learning_rate': 4.9350649350649355e-05, 'epoch': 0.01}
+
+
+  1%|          | 59/7689 [09:27<17:37:55,  8.32s/it]
+{'loss': 1.3381, 'grad_norm': 0.1741226693796237, 'learning_rate': 5.108225108225109e-05, 'epoch': 0.01}
+
+  1%|          | 60/7689 [09:32<15:51:12,  7.48s/it]
+
+  1%|          | 61/7689 [09:38<14:56:17,  7.05s/it]
+
+  1%|          | 62/7689 [09:47<16:19:58,  7.71s/it]
+
+  1%|          | 63/7689 [09:56<17:11:04,  8.11s/it]
+
+  1%|          | 64/7689 [10:04<16:48:14,  7.93s/it]
+
+
+  1%|          | 66/7689 [10:25<20:33:46,  9.71s/it]
+{'loss': 1.0578, 'grad_norm': 0.2147832815580386, 'learning_rate': 5.714285714285714e-05, 'epoch': 0.01}
+
+  1%|          | 67/7689 [10:36<21:23:51, 10.11s/it]
+
+  1%|          | 68/7689 [10:44<19:47:52,  9.35s/it]
+
+  1%|          | 69/7689 [10:56<21:51:56, 10.33s/it]
+
+  1%|          | 70/7689 [11:02<18:58:46,  8.97s/it]
+
+  1%|          | 71/7689 [11:18<23:10:02, 10.95s/it]
+
+
+  1%|          | 73/7689 [11:35<19:58:39,  9.44s/it]
+
+  1%|          | 74/7689 [11:43<19:25:22,  9.18s/it]
+
+  1%|          | 75/7689 [11:55<21:21:49, 10.10s/it]
+
+  1%|          | 76/7689 [12:03<19:47:46,  9.36s/it]
+
+  1%|          | 77/7689 [12:09<17:32:53,  8.30s/it]
+{'loss': 1.2565, 'grad_norm': 0.21573667844469438, 'learning_rate': 6.666666666666667e-05, 'epoch': 0.01}
+
+  1%|          | 78/7689 [12:16<16:52:42,  7.98s/it]
+
+  1%|          | 79/7689 [12:24<16:47:43,  7.95s/it]
+
+
+  1%|          | 81/7689 [12:39<16:16:46,  7.70s/it]
+
+  1%|          | 82/7689 [12:49<17:47:25,  8.42s/it]
+{'loss': 1.1036, 'grad_norm': 0.19397374403521978, 'learning_rate': 7.099567099567101e-05, 'epoch': 0.01}
+
+  1%|          | 83/7689 [12:58<18:14:08,  8.63s/it]
+
+  1%|          | 84/7689 [13:07<18:10:41,  8.61s/it]
+
+  1%|          | 85/7689 [13:16<18:49:54,  8.92s/it]
+
+  1%|          | 86/7689 [13:28<20:35:01,  9.75s/it]
+
+  1%|          | 87/7689 [13:34<18:25:06,  8.72s/it]
+
+
+  1%|          | 89/7689 [13:56<19:50:34,  9.40s/it]
+{'loss': 1.1853, 'grad_norm': 0.23702440416798015, 'learning_rate': 7.705627705627707e-05, 'epoch': 0.01}
+
+
+  1%|          | 91/7689 [14:15<20:38:44,  9.78s/it]
+{'loss': 1.3508, 'grad_norm': 0.21161481137177493, 'learning_rate': 7.878787878787879e-05, 'epoch': 0.01}
+
+  1%|          | 92/7689 [14:24<19:48:00,  9.38s/it]
+
+
+  1%|          | 94/7689 [14:37<16:45:54,  7.95s/it]
+{'loss': 1.0731, 'grad_norm': 0.21692185319357662, 'learning_rate': 8.138528138528139e-05, 'epoch': 0.01}
+
+
+  1%|          | 96/7689 [14:49<14:42:30,  6.97s/it]
+{'loss': 1.3072, 'grad_norm': 0.2225336864761353, 'learning_rate': 8.311688311688312e-05, 'epoch': 0.01}
+
+  1%|▏         | 97/7689 [14:59<16:10:59,  7.67s/it]
+
+
+  1%|▏         | 99/7689 [15:11<14:50:43,  7.04s/it]
+
+  1%|▏         | 100/7689 [15:19<15:33:30,  7.38s/it]
+
+  1%|▏         | 101/7689 [15:29<17:10:24,  8.15s/it]
+
+  1%|▏         | 102/7689 [15:41<19:29:24,  9.25s/it]
+{'loss': 1.0411, 'grad_norm': 0.20744013092822025, 'learning_rate': 8.831168831168831e-05, 'epoch': 0.01}
+
+
+  1%|▏         | 104/7689 [16:08<24:36:46, 11.68s/it]
+
+  1%|▏         | 105/7689 [16:13<20:51:28,  9.90s/it]
+{'loss': 1.2833, 'grad_norm': 0.21870996642248813, 'learning_rate': 9.090909090909092e-05, 'epoch': 0.01}
+
+  1%|▏         | 106/7689 [16:21<19:18:21,  9.17s/it]
+
+  1%|▏         | 107/7689 [16:26<17:01:28,  8.08s/it]
+
+  1%|▏         | 108/7689 [16:44<23:06:47, 10.98s/it]
+
+  1%|▏         | 109/7689 [16:56<23:48:15, 11.31s/it]
+
+
+  1%|▏         | 111/7689 [17:18<24:05:13, 11.44s/it]
+
+  1%|▏         | 112/7689 [17:23<20:28:44,  9.73s/it]
+{'loss': 1.2115, 'grad_norm': 0.23457774058441178, 'learning_rate': 9.696969696969698e-05, 'epoch': 0.01}
+
+  1%|▏         | 113/7689 [17:42<26:07:05, 12.41s/it]
+
+  1%|▏         | 114/7689 [17:51<23:44:59, 11.29s/it]
+
+
+  2%|▏         | 116/7689 [18:05<19:17:32,  9.17s/it]
+{'loss': 0.9614, 'grad_norm': 0.22813607551819826, 'learning_rate': 0.00010043290043290043, 'epoch': 0.02}
+
+
+  2%|▏         | 118/7689 [18:17<15:40:57,  7.46s/it]
+{'loss': 1.3128, 'grad_norm': 0.24299530097030386, 'learning_rate': 0.00010216450216450218, 'epoch': 0.02}
+
+  2%|▏         | 119/7689 [18:26<16:41:53,  7.94s/it]
+
+  2%|▏         | 120/7689 [18:34<16:38:56,  7.92s/it]
+
+  2%|▏         | 121/7689 [18:39<14:31:18,  6.91s/it]
+
+  2%|▏         | 122/7689 [18:46<15:03:06,  7.16s/it]
+
+
+  2%|▏         | 124/7689 [19:02<15:34:17,  7.41s/it]
+
+  2%|▏         | 125/7689 [19:14<18:35:28,  8.85s/it]
+{'loss': 1.0959, 'grad_norm': 0.1990183654862164, 'learning_rate': 0.00010822510822510823, 'epoch': 0.02}
+
+  2%|▏         | 126/7689 [19:25<19:58:12,  9.51s/it]
+
+
+  2%|▏         | 128/7689 [19:41<18:34:24,  8.84s/it]
+
+  2%|▏         | 129/7689 [19:48<17:14:59,  8.21s/it]
+{'loss': 1.1003, 'grad_norm': 0.2340458402477179, 'learning_rate': 0.00011168831168831168, 'epoch': 0.02}
+
+  2%|▏         | 130/7689 [19:58<18:27:01,  8.79s/it]
+
+
+  2%|▏         | 132/7689 [20:17<19:55:40,  9.49s/it]
+
+  2%|▏         | 133/7689 [20:25<18:53:22,  9.00s/it]
+
+  2%|▏         | 134/7689 [20:37<20:55:17,  9.97s/it]
+{'loss': 0.9553, 'grad_norm': 0.2399789629984456, 'learning_rate': 0.00011601731601731602, 'epoch': 0.02}
+
+  2%|▏         | 135/7689 [20:46<20:05:27,  9.57s/it]
+
+
+  2%|▏         | 137/7689 [21:01<17:47:19,  8.48s/it]
+{'loss': 0.9642, 'grad_norm': 0.27081223645164043, 'learning_rate': 0.00011861471861471862, 'epoch': 0.02}
+
+  2%|▏         | 138/7689 [21:11<18:23:17,  8.77s/it]
+
+  2%|▏         | 139/7689 [21:19<18:02:24,  8.60s/it]
+
+
+  2%|▏         | 141/7689 [21:40<19:35:57,  9.35s/it]
+{'loss': 1.0287, 'grad_norm': 0.20788778448818798, 'learning_rate': 0.00012207792207792208, 'epoch': 0.02}
+
+
+  2%|▏         | 143/7689 [21:54<16:48:02,  8.02s/it]
+
+  2%|▏         | 144/7689 [22:01<16:33:27,  7.90s/it]
+
+  2%|▏         | 145/7689 [22:12<18:16:46,  8.72s/it]
+{'loss': 1.0635, 'grad_norm': 0.22424471502260365, 'learning_rate': 0.00012554112554112555, 'epoch': 0.02}
+
+  2%|▏         | 146/7689 [22:17<16:00:12,  7.64s/it]
+
+  2%|▏         | 147/7689 [22:23<14:43:53,  7.03s/it]
+
+  2%|▏         | 148/7689 [22:30<15:07:37,  7.22s/it]
+
+
+  2%|▏         | 150/7689 [22:46<15:16:13,  7.29s/it]
+
+  2%|▏         | 151/7689 [22:53<15:26:04,  7.37s/it]
+{'loss': 1.3109, 'grad_norm': 0.23127984719520855, 'learning_rate': 0.00013073593073593072, 'epoch': 0.02}
+
+
+  2%|▏         | 153/7689 [23:10<15:37:19,  7.46s/it]
+
+  2%|▏         | 154/7689 [23:16<14:45:31,  7.05s/it]
+
+  2%|▏         | 155/7689 [23:30<19:09:44,  9.16s/it]
+{'loss': 1.1185, 'grad_norm': 0.21797647762549233, 'learning_rate': 0.00013419913419913422, 'epoch': 0.02}
+
+
+  2%|▏         | 157/7689 [23:48<19:14:46,  9.20s/it]
+
+  2%|▏         | 158/7689 [23:54<17:22:11,  8.30s/it]
+{'loss': 1.1882, 'grad_norm': 0.2083681563036394, 'learning_rate': 0.0001367965367965368, 'epoch': 0.02}
+
+  2%|▏         | 159/7689 [24:01<16:40:57,  7.98s/it]
+
+  2%|▏         | 160/7689 [24:11<17:43:25,  8.47s/it]
+
+  2%|▏         | 161/7689 [24:19<17:40:33,  8.45s/it]
+
+
+  2%|▏         | 163/7689 [24:36<16:48:47,  8.04s/it]
+
+  2%|▏         | 164/7689 [24:48<19:28:55,  9.32s/it]
+{'loss': 1.1876, 'grad_norm': 0.21317994399207713, 'learning_rate': 0.00014199134199134201, 'epoch': 0.02}
+
+  2%|▏         | 165/7689 [25:01<22:03:40, 10.56s/it]
+
+
+  2%|▏         | 167/7689 [25:32<26:24:07, 12.64s/it]
+{'loss': 1.1207, 'grad_norm': 0.19965882471029558, 'learning_rate': 0.00014458874458874458, 'epoch': 0.02}
+
+  2%|▏         | 168/7689 [25:43<25:16:21, 12.10s/it]
+
+  2%|▏         | 169/7689 [25:53<24:11:35, 11.58s/it]
+
+
+  2%|▏         | 171/7689 [26:10<20:34:40,  9.85s/it]
+{'loss': 1.0958, 'grad_norm': 0.22036688432231938, 'learning_rate': 0.00014805194805194807, 'epoch': 0.02}
+
+  2%|▏         | 172/7689 [26:15<17:44:08,  8.49s/it]
+
+
+  2%|▏         | 174/7689 [26:36<19:25:41,  9.31s/it]
+
+  2%|▏         | 175/7689 [26:46<19:48:39,  9.49s/it]
+{'loss': 1.1765, 'grad_norm': 0.2146816387333982, 'learning_rate': 0.00015151515151515152, 'epoch': 0.02}
+
+
+  2%|▏         | 177/7689 [26:58<15:59:42,  7.67s/it]
+
+  2%|▏         | 178/7689 [27:06<16:13:19,  7.78s/it]
+
+  2%|▏         | 179/7689 [27:14<16:23:51,  7.86s/it]
+{'loss': 1.1156, 'grad_norm': 0.2073792305030363, 'learning_rate': 0.00015497835497835498, 'epoch': 0.02}
+
+
+  2%|▏         | 181/7689 [27:34<18:08:41,  8.70s/it]
+
+  2%|▏         | 182/7689 [27:40<16:21:36,  7.85s/it]
+{'loss': 1.0424, 'grad_norm': 0.19692751805030234, 'learning_rate': 0.00015757575757575757, 'epoch': 0.02}
+
+
+  2%|▏         | 184/7689 [28:02<20:24:13,  9.79s/it]
+{'loss': 1.2893, 'grad_norm': 0.22306822500238863, 'learning_rate': 0.0001593073593073593, 'epoch': 0.02}
+
+  2%|▏         | 185/7689 [28:13<21:15:33, 10.20s/it]
+
+
+  2%|▏         | 187/7689 [28:30<19:21:29,  9.29s/it]
+
+  2%|▏         | 188/7689 [28:36<17:23:18,  8.35s/it]
+{'loss': 1.192, 'grad_norm': 0.19940595450132584, 'learning_rate': 0.00016277056277056278, 'epoch': 0.02}
+
+  2%|▏         | 189/7689 [28:44<16:52:26,  8.10s/it]
+
+  2%|▏         | 190/7689 [28:55<18:45:19,  9.00s/it]
+
+  2%|▏         | 191/7689 [29:09<22:00:39, 10.57s/it]
+
+
+  3%|▎         | 193/7689 [29:25<19:02:21,  9.14s/it]
+{'loss': 1.2441, 'grad_norm': 0.19767551434149297, 'learning_rate': 0.0001670995670995671, 'epoch': 0.03}
+
+
+  3%|▎         | 195/7689 [29:40<18:16:11,  8.78s/it]
+
+  3%|▎         | 196/7689 [29:46<16:10:40,  7.77s/it]
+
+  3%|▎         | 197/7689 [29:56<17:36:33,  8.46s/it]
+
+  3%|▎         | 198/7689 [30:04<17:35:27,  8.45s/it]
+
+  3%|▎         | 199/7689 [30:16<19:27:32,  9.35s/it]
+
+  3%|▎         | 200/7689 [30:21<16:31:47,  7.95s/it]
+
+  3%|▎         | 201/7689 [30:28<16:12:57,  7.80s/it]
+{'loss': 1.102, 'grad_norm': 0.22928286583173624, 'learning_rate': 0.00017402597402597401, 'epoch': 0.03}
+
+
+  3%|▎         | 203/7689 [30:46<18:05:27,  8.70s/it]
+
+  3%|▎         | 204/7689 [30:52<16:33:35,  7.96s/it]
+
+  3%|▎         | 205/7689 [31:01<16:51:11,  8.11s/it]
+
+  3%|▎         | 206/7689 [31:07<15:38:41,  7.53s/it]
+{'loss': 1.0767, 'grad_norm': 0.22051919584176516, 'learning_rate': 0.00017835497835497836, 'epoch': 0.03}
+
+
+  3%|▎         | 208/7689 [31:23<15:43:16,  7.57s/it]
+
+  3%|▎         | 209/7689 [31:28<14:21:21,  6.91s/it]
+{'loss': 1.1363, 'grad_norm': 0.19628588263242644, 'learning_rate': 0.00018095238095238095, 'epoch': 0.03}
+
+
+  3%|▎         | 211/7689 [31:46<16:30:00,  7.94s/it]
+{'loss': 1.2052, 'grad_norm': 0.2248660344692566, 'learning_rate': 0.00018268398268398272, 'epoch': 0.03}
+
+  3%|▎         | 212/7689 [31:55<17:16:54,  8.32s/it]
+
+  3%|▎         | 213/7689 [32:03<17:05:42,  8.23s/it]
+
+  3%|▎         | 214/7689 [32:11<16:50:29,  8.11s/it]
+
+  3%|▎         | 215/7689 [32:18<15:49:37,  7.62s/it]
+
+
+  3%|▎         | 217/7689 [32:37<18:11:03,  8.76s/it]
+
+  3%|▎         | 218/7689 [32:46<18:41:44,  9.01s/it]
+{'loss': 1.204, 'grad_norm': 0.1984892187552184, 'learning_rate': 0.00018874458874458875, 'epoch': 0.03}
+
+
+  3%|▎         | 220/7689 [33:07<20:07:29,  9.70s/it]
+{'loss': 1.0726, 'grad_norm': 0.1946197874069152, 'learning_rate': 0.00019047619047619048, 'epoch': 0.03}
+
+  3%|▎         | 221/7689 [33:15<19:19:13,  9.31s/it]
+
+  3%|▎         | 222/7689 [33:27<21:00:22, 10.13s/it]
+
+
+  3%|▎         | 224/7689 [33:45<18:51:24,  9.09s/it]
+
+  3%|▎         | 225/7689 [33:52<17:55:21,  8.64s/it]
+
+  3%|▎         | 226/7689 [34:10<23:52:09, 11.51s/it]
+{'loss': 0.9197, 'grad_norm': 0.21771603762232455, 'learning_rate': 0.00019567099567099566, 'epoch': 0.03}
+
+  3%|▎         | 227/7689 [34:20<22:39:20, 10.93s/it]
+
+
+  3%|▎         | 229/7689 [34:37<20:05:58,  9.70s/it]
+{'loss': 0.9933, 'grad_norm': 0.17477581613639268, 'learning_rate': 0.00019826839826839827, 'epoch': 0.03}
+
+
+  3%|▎         | 231/7689 [34:51<17:24:22,  8.40s/it]
+{'loss': 1.1515, 'grad_norm': 0.22213157928166785, 'learning_rate': 0.0002, 'epoch': 0.03}
+
+
+  3%|▎         | 233/7689 [35:08<17:28:38,  8.44s/it]
+
+  3%|▎         | 234/7689 [35:17<17:16:51,  8.34s/it]
+
+  3%|▎         | 235/7689 [35:24<16:50:36,  8.13s/it]
+{'loss': 1.1214, 'grad_norm': 0.187687530244057, 'learning_rate': 0.00019999985804690314, 'epoch': 0.03}
+
+  3%|▎         | 236/7689 [35:29<14:52:18,  7.18s/it]
+
+
+  3%|▎         | 238/7689 [35:46<15:59:14,  7.72s/it]
+{'loss': 1.1871, 'grad_norm': 0.19802214793265643, 'learning_rate': 0.000199999565268853, 'epoch': 0.03}
+
+
+  3%|▎         | 240/7689 [36:11<20:46:21, 10.04s/it]
+{'loss': 1.2216, 'grad_norm': 0.24156741856189773, 'learning_rate': 0.00019999928136313786, 'epoch': 0.03}
+
+  3%|▎         | 241/7689 [36:18<19:11:10,  9.27s/it]
+
+
+  3%|▎         | 243/7689 [36:29<15:07:53,  7.32s/it]
+{'loss': 1.2264, 'grad_norm': 0.1986046272302195, 'learning_rate': 0.00019999872242454632, 'epoch': 0.03}
+
+
+  3%|▎         | 245/7689 [36:45<15:39:35,  7.57s/it]
+{'loss': 1.1679, 'grad_norm': 0.18642010477643886, 'learning_rate': 0.00019999826107919177, 'epoch': 0.03}
+
+  3%|▎         | 246/7689 [36:54<16:34:39,  8.02s/it]
+
+  3%|▎         | 247/7689 [37:00<15:12:58,  7.36s/it]
+
+  3%|▎         | 248/7689 [37:12<18:17:17,  8.85s/it]
+
+  3%|▎         | 249/7689 [37:19<17:16:37,  8.36s/it]
+
+  3%|▎         | 250/7689 [37:26<16:25:01,  7.94s/it]
+
+  3%|▎         | 251/7689 [37:36<17:37:42,  8.53s/it]
+
+  3%|▎         | 252/7689 [37:48<19:50:10,  9.60s/it]
+
+  3%|▎         | 253/7689 [38:00<20:49:34, 10.08s/it]
+
+
+  3%|▎         | 255/7689 [38:13<17:07:09,  8.29s/it]
+{'loss': 1.0749, 'grad_norm': 0.20630541166726815, 'learning_rate': 0.0001999948897308292, 'epoch': 0.03}
+
+  3%|▎         | 256/7689 [38:30<22:46:28, 11.03s/it]
+
+  3%|▎         | 257/7689 [38:38<20:48:51, 10.08s/it]
+
+
+  3%|▎         | 259/7689 [38:57<20:05:47,  9.74s/it]
+{'loss': 1.2018, 'grad_norm': 0.19590716670774155, 'learning_rate': 0.00019999304437724402, 'epoch': 0.03}
+
+
+  3%|▎         | 261/7689 [39:15<19:36:33,  9.50s/it]
+
+  3%|▎         | 262/7689 [39:31<23:09:06, 11.22s/it]
+{'loss': 0.8688, 'grad_norm': 0.2245506839363589, 'learning_rate': 0.00019999147406125792, 'epoch': 0.03}
+
+
+  3%|▎         | 264/7689 [39:45<18:34:31,  9.01s/it]
+
+  3%|▎         | 265/7689 [40:01<23:07:02, 11.21s/it]
+
+  3%|▎         | 266/7689 [40:11<22:22:11, 10.85s/it]
+
+  3%|▎         | 267/7689 [40:17<19:30:17,  9.46s/it]
+{'loss': 1.1728, 'grad_norm': 0.19633817150912042, 'learning_rate': 0.0001999885020167798, 'epoch': 0.03}
+
+  3%|▎         | 268/7689 [40:26<19:15:48,  9.34s/it]
+
+
+  4%|▎         | 270/7689 [40:41<17:00:29,  8.25s/it]
+{'loss': 1.1393, 'grad_norm': 0.19356470125873096, 'learning_rate': 0.00019998650588403294, 'epoch': 0.04}
+
+  4%|▎         | 271/7689 [40:58<22:30:27, 10.92s/it]
+
+
+  4%|▎         | 273/7689 [41:11<18:07:12,  8.80s/it]
+
+  4%|▎         | 274/7689 [41:25<21:14:03, 10.31s/it]
+{'loss': 1.1762, 'grad_norm': 0.18925442253662503, 'learning_rate': 0.00019998359598986807, 'epoch': 0.04}
+
+  4%|▎         | 275/7689 [41:36<22:02:34, 10.70s/it]
+
+  4%|▎         | 276/7689 [41:48<22:17:23, 10.82s/it]
+
+
+  4%|▎         | 278/7689 [42:01<17:50:46,  8.67s/it]
+
+  4%|▎         | 279/7689 [42:07<16:19:02,  7.93s/it]
+
+  4%|▎         | 280/7689 [42:13<15:18:13,  7.44s/it]
+
+  4%|▎         | 281/7689 [42:23<16:39:44,  8.10s/it]
+
+  4%|▎         | 282/7689 [42:31<16:55:35,  8.23s/it]
+{'loss': 1.1715, 'grad_norm': 0.19616872186603634, 'learning_rate': 0.00019997692463174046, 'epoch': 0.04}
+
+
+  4%|▎         | 284/7689 [42:49<18:06:04,  8.80s/it]
+{'loss': 1.1094, 'grad_norm': 0.17217699494328378, 'learning_rate': 0.00019997507938866588, 'epoch': 0.04}
+
+  4%|▎         | 285/7689 [43:02<20:39:04, 10.04s/it]
+
+
+  4%|▎         | 287/7689 [43:19<19:08:11,  9.31s/it]
+{'loss': 1.1579, 'grad_norm': 0.19804694351090205, 'learning_rate': 0.00019997217847658977, 'epoch': 0.04}
+
+  4%|▎         | 288/7689 [43:32<21:16:13, 10.35s/it]
+
+  4%|▍         | 289/7689 [43:38<18:41:50,  9.10s/it]
+
+  4%|▍         | 290/7689 [43:50<20:28:07,  9.96s/it]
+
+
+  4%|▍         | 292/7689 [44:05<18:00:55,  8.77s/it]
+{'loss': 1.126, 'grad_norm': 0.19399280609379432, 'learning_rate': 0.0001999669888414876, 'epoch': 0.04}
+
+  4%|▍         | 293/7689 [44:16<19:26:37,  9.46s/it]
+
+
+  4%|▍         | 295/7689 [44:29<16:08:54,  7.86s/it]
+
+  4%|▍         | 296/7689 [44:33<13:53:18,  6.76s/it]
+{'loss': 1.1409, 'grad_norm': 0.21436107860610268, 'learning_rate': 0.0001999625178432451, 'epoch': 0.04}
+
+
+  4%|▍         | 298/7689 [44:49<14:45:33,  7.19s/it]
+{'loss': 0.9917, 'grad_norm': 0.19292431631435816, 'learning_rate': 0.00019996017591838175, 'epoch': 0.04}
+
+  4%|▍         | 300/7689 [45:07<16:56:42,  8.26s/it]Traceback (most recent call last):
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/train/train_mem.py", line 13, in <module>
+    train()
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/train/train.py", line 585, in train
+    trainer.train()
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 1885, in train
+    return inner_training_loop(
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 2291, in _inner_training_loop
+    self._maybe_log_save_evaluate(tr_loss, grad_norm, model, trial, epoch, ignore_keys_for_eval)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 2721, in _maybe_log_save_evaluate
+    metrics = self.evaluate(ignore_keys=ignore_keys_for_eval)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 3572, in evaluate
+    output = eval_loop(
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 3757, in evaluation_loop
+    loss, logits, labels = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 3971, in prediction_step
+    loss, outputs = self.compute_loss(model, inputs, return_outputs=True)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 3264, in compute_loss
+    outputs = model(**inputs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/peft_model.py", line 1091, in forward
+    return self.base_model(
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/tuners/tuners_utils.py", line 160, in forward
+    return self.model.forward(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/models/qwen2/modeling_qwen2.py", line 1168, in forward
+    outputs = self.model(
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/model/modeling_molora_qwen.py", line 278, in forward
+    layer_outputs = decoder_layer(
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/model/modeling_molora_qwen.py", line 141, in forward
+    hidden_states = self.mlp(hidden_states)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/model/modeling_molora_qwen.py", line 81, in forward
+    return super().forward(x)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/models/qwen2/modeling_qwen2.py", line 180, in forward
+    return self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/model/utils.py", line 224, in forward
+    moe_result = self.molora_helper2(x) if self.training else self.molora_helper(x)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/model/utils.py", line 300, in molora_helper
+    assert selected_experts.shape[0] == 1
+AssertionError
+{'loss': 0.956, 'grad_norm': 0.17765867056124068, 'learning_rate': 0.0001999577630452231, 'epoch': 0.04}

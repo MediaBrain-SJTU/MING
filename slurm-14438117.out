@@ -1,0 +1,4 @@
+Processing ceval_cot
+srun: got SIGCONT
+slurmstepd: error: *** JOB 14438117 ON SH-IDC1-10-140-0-230 CANCELLED AT 2024-05-29T19:26:00 ***
+srun: forcing job termination

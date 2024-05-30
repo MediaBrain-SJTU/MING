@@ -1,0 +1,5 @@
+./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert/only_share/ceval_cot
+Processing ceval_cot
+srun: error: SH-IDC1-10-140-1-166: task 0: Exited with exit code 1
+Evaluating ceval_cot
+srun: error: SH-IDC1-10-140-1-166: task 0: Exited with exit code 1

@@ -1,0 +1,42 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-1.8B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/3844 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/train/train_mem.py", line 13, in <module>
+    train()
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/train/train.py", line 596, in train
+    trainer.train()
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 1885, in train
+    return inner_training_loop(
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 2216, in _inner_training_loop
+    tr_loss_step = self.training_step(model, inputs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 3238, in training_step
+    loss = self.compute_loss(model, inputs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/trainer.py", line 3264, in compute_loss
+    outputs = model(**inputs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/deepspeed/utils/nvtx.py", line 15, in wrapped_fn
+    ret_val = func(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/deepspeed/runtime/engine.py", line 1852, in forward
+    loss = self.module(*inputs, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/peft_model.py", line 1091, in forward
+    return self.base_model(
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1568, in _call_impl
+    result = forward_call(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/tuners/tuners_utils.py", line 160, in forward
+    return self.model.forward(*args, **kwargs)
+  File "/mnt/petrelfs/liaoyusheng/projects/MING/ming/model/utils.py", line 596, in lbl_loss_forward
+    loss += self.config.lbl_loss_coeff * lbl_loss
+  File "/mnt/petrelfs/liaoyusheng/projects/MING-MOE-DATA/transformers/src/transformers/configuration_utils.py", line 263, in __getattribute__
+    return super().__getattribute__(key)
+AttributeError: 'Qwen2Config' object has no attribute 'lbl_loss_coeff'

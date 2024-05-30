@@ -1,0 +1,16 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-1.8B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/3844 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Total Loss: 1.0773389339447021, NLL Loss: 1.0531723499298096, Router Loss: 2.4166524410247803, weight: 0.01
+Total Loss: 1.6733442544937134, NLL Loss: 1.6504833698272705, Router Loss: 2.286088466644287, weight: 0.01
+{'loss': 1.7001, 'grad_norm': 0.6676436723251239, 'learning_rate': 1.7241379310344828e-07, 'epoch': 0.0}
+  0%|          | 1/3844 [00:32<34:45:47, 32.57s/it]
+Total Loss: 1.7898755073547363, NLL Loss: 1.7665413618087769, Router Loss: 2.333418846130371, weight: 0.01
+Total Loss: 2.180182933807373, NLL Loss: 2.1560118198394775, Router Loss: 2.4171135425567627, weight: 0.01
+{'loss': 1.6991, 'grad_norm': 0.708483693457707, 'learning_rate': 3.4482758620689656e-07, 'epoch': 0.0}
+
+  0%|          | 2/3844 [00:39<18:23:07, 17.23s/it]
+Total Loss: 2.0089523792266846, NLL Loss: 1.9866106510162354, Router Loss: 2.234170913696289, weight: 0.01
+
+  0%|          | 3/3844 [00:46<13:37:13, 12.77s/it]

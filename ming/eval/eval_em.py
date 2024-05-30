@@ -420,7 +420,7 @@ def squadv20_acc(line):
     return 0
 
 def cblue_score(args, questions):
-    answer_file = "/home/cs/yangyuchen/yushengliao/Medical_LLM/Medical_MOE/datas/medical_moe/test/CBLUE_structured.json"
+    answer_file = "/mnt/petrelfs/liaoyusheng/projects/MING/datas/test/CBLUE_structured.json"
     output_path = args.output_file.rsplit("/", 1)[0] + "results.json"
     dict_pred = process_generated_results(questions)
     
@@ -438,7 +438,7 @@ def cblue_score(args, questions):
         report_score(score_map, output_path)
 
 def multiplechoice_acc(line):
-    pred = re.search(r'答案为(.*?)$', line['text'])
+    pred = re.search(r'答案为(.*?)$', line['text'].rsplit("\n\n\n", 1)[0])
     # pred = re.findall(r'[A-E].', pred)
     if pred == [] or pred is None:
         # import pdb
@@ -491,12 +491,12 @@ def multiplechoice_en_acc(line):
     answer_list = line['additional_info']['answer']
     for answer in answer_list:
         all_index = all_index.replace(answer, "")
-        if f"{answer}." not in pred:
+        if f"{answer}" not in pred:
             return 0
         
     if len(answer_list) > 1:
         for o_answer in all_index:
-            if f"{o_answer}." in pred:
+            if f"{o_answer}" in pred:
                 return 0
     return 1
 
@@ -532,6 +532,7 @@ METRIC_FUNC_MAPPING = {
     "cmmlu_cot": multiplechoice_acc,
     "CMExam_cot": multiplechoice_acc,
     "CMB_cot": multiplechoice_acc,
+    "CMB_val_cot": multiplechoice_acc,
     "mmlu_cot": multiplechoice_en_acc,
     "MedQA_cot": multiplechoice_en_acc,
     "MedMCQA_cot": multiplechoice_en_acc
@@ -563,9 +564,6 @@ if __name__ == "__main__":
     elif dataset_name in ["CBLUE"]:
         cblue_score(args, questions)
     else:
-        # answer task   
-        # import pdb
-        # pdb.set_trace()
         if "type" in questions[0]['additional_info']:
             type_total = {}
             type_score = {}
@@ -623,4 +621,4 @@ if __name__ == "__main__":
             print(f"Acc in {dataset_name}: {avg_acc}")
 
         with open(args.output_file, 'w') as f:
-            json.dump(wrong_idx, f, ensure_ascii=False)
+            json.dump(wrong_idx, f, indent=4, ensure_ascii=False)

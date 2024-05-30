@@ -1,0 +1,7 @@
+Processing PLE_Pharmacy_cot
+srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
+srun: Easily find out why your job was killed by following the link below:
+	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
+slurmstepd: error: *** JOB 14431567 ON SH-IDC1-10-140-0-222 CANCELLED AT 2024-05-29T14:53:23 ***
+srun: got SIGCONT
+srun: forcing job termination

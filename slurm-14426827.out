@@ -1,0 +1,3 @@
+Processing cmmlu_cot
+Evaluating cmmlu_cot
+srun: error: SH-IDC1-10-140-0-190: task 0: Exited with exit code 1

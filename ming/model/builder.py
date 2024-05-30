@@ -87,30 +87,46 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
         
         if expert_selection:
             lora_cfg_pretrained.expert_selection = expert_selection
-        if not hasattr(lora_cfg_pretrained, "num_experts"):
-            lora_cfg_pretrained.num_experts = 4
-            lora_cfg_pretrained.num_experts_per_token = 2
-            lora_cfg_pretrained.share_expert = False
-            lora_cfg_pretrained.expert_selection = "top_k"
+        # if not hasattr(lora_cfg_pretrained, "num_experts"):
+        lora_cfg_pretrained.num_experts = getattr(lora_cfg_pretrained, "num_experts", 4)
+        lora_cfg_pretrained.num_experts_per_token = getattr(lora_cfg_pretrained, "num_experts_per_token", 2)
+        lora_cfg_pretrained.share_expert = getattr(lora_cfg_pretrained, "share_expert", False)
+        lora_cfg_pretrained.num_share_experts = getattr(lora_cfg_pretrained, "num_share_experts", 1)
+        lora_cfg_pretrained.expert_selection = getattr(lora_cfg_pretrained, "expert_selection", "top_k")
         if getattr(lora_cfg_pretrained, "use_rslora", None) is None:
             setattr(lora_cfg_pretrained, "use_rslora", False)
-            
-        with open(os.path.join(model_path, "adapter_config.json")) as f:
-            lora_specific_pretrained = json.load(f)
-            # merge lora_specific_pretrained to lora_cfg_pretrained, which is a transformer config class
-            lora_cfg_pretrained.r = lora_specific_pretrained['r']
-            lora_cfg_pretrained.lora_alpha = lora_specific_pretrained["lora_alpha"]
-            lora_cfg_pretrained.lora_dropout = lora_specific_pretrained["lora_dropout"]
-            lora_cfg_pretrained.bias = lora_specific_pretrained['bias']
         
-        print(lora_specific_pretrained)
+        from peft import PeftModel, PeftConfig
+        lora_config = PeftConfig.from_pretrained(model_path)
+        
+        print(lora_config)
         if only_load != "ffn":
             model = AutoModelForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, config=lora_cfg_pretrained, **kwargs)
             from peft import PeftModel
             print(f"Loading LoRA weights from {model_path}")
-            model = PeftModel.from_pretrained(model, model_path)
-            print(f"Merging weights")
+            model = PeftModel.from_pretrained(model, model_path, config=lora_config)
+
+            print(f"Merging LoRA weights")
             model = model.merge_and_unload()
+
+            if only_load == "share": 
+                print(f"Loading Share Expert of the LoRA weights from {model_path}")
+
+                lora_config.target_modules = set(["up_proj", "down_proj", "gate_proj"])
+                lora_config.r = lora_config.r * lora_cfg_pretrained.num_share_experts
+
+                model = PeftModel.from_pretrained(model, model_path, config=lora_config)
+                non_lora_trainables = torch.load(os.path.join(model_path, 'non_lora_trainables.bin'), map_location='cpu')
+                share_experts_params = {}
+                for k, v in non_lora_trainables.items():
+                    if "share_experts" in k and "lora" in k:
+                        share_experts_params[k.replace('share_experts.', '').replace('lora_A', 'lora_A.default').replace('lora_B', 'lora_B.default')] = v
+
+                incompatible_keys = model.load_state_dict(share_experts_params, strict=False)
+                print(incompatible_keys)
+
+                print(f"Merging Share Expert of MoLoRA weights")
+                model = model.merge_and_unload()
 
         token_num, tokem_dim = model.lm_head.out_features, model.lm_head.in_features
         if model.lm_head.weight.shape[0] != token_num:
@@ -118,23 +134,23 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
             model.model.embed_tokens.weight = torch.nn.Parameter(torch.empty(token_num, tokem_dim, device=model.device, dtype=model.dtype))
         
         # all_mlp_weights = [y for x, y in model.state_dict().items() if "gate_proj.weight" in x or "down_proj.weight" in x or "up_proj.weight" in x]
-        if only_load != "attn":
-            model = get_mixoflora_model(model, lora_cfg_pretrained.num_experts,
-                                            lora_cfg_pretrained.num_experts_per_token,
-                                            expert_selection=lora_cfg_pretrained.expert_selection,
-                                            lora_config=lora_cfg_pretrained,
-                                            use_logit_sum=False,
-                                            inference_mode=True)
+        if only_load != "attn" and only_load != "share":
+            print(f"Loading MoLoRA weights from {model_path}")
+            if only_load == "no_share":
+                lora_cfg_pretrained.share_expert = False
+                
+            model = get_mixoflora_model(model, model_args=lora_cfg_pretrained, lora_config=lora_config)
             if os.path.exists(os.path.join(model_path, 'non_lora_trainables.bin')):
                 non_lora_trainables = torch.load(os.path.join(model_path, 'non_lora_trainables.bin'), map_location='cpu')
                 non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
                 if any(k.startswith('model.model.') for k in non_lora_trainables):
                     non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
             incompatible_keys = model.load_state_dict(non_lora_trainables, strict=False)
-            # print(incompatible_keys)
             
         print('Convert to FP16...')
         model.to(torch.float16)
+
+        # print(*model)
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, trust_remote_code=True, **kwargs)
@@ -144,13 +160,10 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
     else:
         context_len = 2048
     
-    if use_logit_bias:
-        if model_base is not None:
-            # lora case
-            tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base , add_prefix_space=True, trust_remote_code=True)
-        else:
-            tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, add_prefix_space=True, trust_remote_code=True)
+    if model_base is not None:
+        # lora case
+        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base , add_prefix_space=True, trust_remote_code=True)
     else:
-        tokenizer_with_prefix_space = None
-        
+        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, add_prefix_space=True, trust_remote_code=True)
+
     return tokenizer, model, context_len, tokenizer_with_prefix_space

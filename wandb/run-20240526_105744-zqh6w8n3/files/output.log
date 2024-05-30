@@ -1,0 +1,124 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-1.8B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/3844 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+Total Loss: 1.193669319152832, NLL Loss: 1.1696040630340576, Router Loss: 2.406527280807495, weight: 0.01
+Total Loss: 1.8375664949417114, NLL Loss: 1.814663290977478, Router Loss: 2.2903192043304443, weight: 0.01
+  0%|          | 1/3844 [00:33<35:19:42, 33.09s/it]
+{'loss': 1.9112, 'grad_norm': 0.7596586749109011, 'learning_rate': 1.7241379310344828e-07, 'epoch': 0.0}
+Total Loss: 1.995133399963379, NLL Loss: 1.9718847274780273, Router Loss: 2.3248696327209473, weight: 0.01
+Total Loss: 2.4898061752319336, NLL Loss: 2.465860605239868, Router Loss: 2.3945672512054443, weight: 0.01
+
+  0%|          | 2/3844 [00:39<18:39:23, 17.48s/it]
+Total Loss: 1.4897847175598145, NLL Loss: 1.4661296606063843, Router Loss: 2.3655028343200684, weight: 0.01
+
+  0%|          | 3/3844 [00:46<13:35:19, 12.74s/it]
+{'loss': 1.9669, 'grad_norm': 0.8325628777258649, 'learning_rate': 5.172413793103449e-07, 'epoch': 0.0}
+Total Loss: 1.5398569107055664, NLL Loss: 1.5176808834075928, Router Loss: 2.21760630607605, weight: 0.01
+Total Loss: 2.277301073074341, NLL Loss: 2.2538509368896484, Router Loss: 2.3450253009796143, weight: 0.01
+
+  0%|          | 4/3844 [00:54<11:18:40, 10.60s/it]
+Total Loss: 1.3738772869110107, NLL Loss: 1.351011872291565, Router Loss: 2.28654146194458, weight: 0.01
+
+  0%|          | 5/3844 [00:59<9:07:35,  8.56s/it]
+{'loss': 1.9367, 'grad_norm': 0.8077112179029349, 'learning_rate': 8.620689655172415e-07, 'epoch': 0.0}
+Total Loss: 2.192242383956909, NLL Loss: 2.1708273887634277, Router Loss: 2.1415083408355713, weight: 0.01
+Total Loss: 1.8508697748184204, NLL Loss: 1.828279972076416, Router Loss: 2.258976459503174, weight: 0.01
+
+  0%|          | 6/3844 [01:05<8:29:22,  7.96s/it]
+Total Loss: 1.4000585079193115, NLL Loss: 1.3753724098205566, Router Loss: 2.4686059951782227, weight: 0.01
+Total Loss: 1.9140963554382324, NLL Loss: 1.8918685913085938, Router Loss: 2.2227752208709717, weight: 0.01
+
+  0%|          | 7/3844 [01:14<8:34:44,  8.05s/it]
+Total Loss: 1.31000816822052, NLL Loss: 1.2871071100234985, Router Loss: 2.290104389190674, weight: 0.01
+Total Loss: 2.246640682220459, NLL Loss: 2.224914789199829, Router Loss: 2.1725776195526123, weight: 0.01
+
+  0%|          | 8/3844 [01:20<7:57:31,  7.47s/it]
+Total Loss: 1.9124109745025635, NLL Loss: 1.8893945217132568, Router Loss: 2.3016417026519775, weight: 0.01
+
+  0%|          | 9/3844 [01:26<7:33:17,  7.09s/it]
+{'loss': 1.8255, 'grad_norm': 0.7816154950645563, 'learning_rate': 1.5517241379310346e-06, 'epoch': 0.0}
+Total Loss: 2.0431156158447266, NLL Loss: 2.0190436840057373, Router Loss: 2.4071877002716064, weight: 0.01
+Total Loss: 2.2834813594818115, NLL Loss: 2.261441230773926, Router Loss: 2.204017162322998, weight: 0.01
+
+  0%|          | 10/3844 [01:31<6:57:24,  6.53s/it]
+Total Loss: 2.0082638263702393, NLL Loss: 1.9864548444747925, Router Loss: 2.180893659591675, weight: 0.01
+Total Loss: 2.3916397094726562, NLL Loss: 2.3700902462005615, Router Loss: 2.1549370288848877, weight: 0.01
+
+  0%|          | 11/3844 [01:38<6:54:57,  6.50s/it]
+Total Loss: 1.598260521888733, NLL Loss: 1.5744282007217407, Router Loss: 2.383227825164795, weight: 0.01
+Total Loss: 1.705808162689209, NLL Loss: 1.6826584339141846, Router Loss: 2.314966917037964, weight: 0.01
+
+  0%|          | 12/3844 [01:43<6:36:50,  6.21s/it]
+Total Loss: 2.320107936859131, NLL Loss: 2.2987778186798096, Router Loss: 2.1330113410949707, weight: 0.01
+Total Loss: 1.944615364074707, NLL Loss: 1.921520709991455, Router Loss: 2.3094711303710938, weight: 0.01
+
+  0%|          | 13/3844 [01:49<6:30:48,  6.12s/it]
+Total Loss: 1.6850522756576538, NLL Loss: 1.6619213819503784, Router Loss: 2.3130929470062256, weight: 0.01
+Total Loss: 2.036903142929077, NLL Loss: 2.013249158859253, Router Loss: 2.3654069900512695, weight: 0.01
+{'loss': 1.7855, 'grad_norm': 0.7718947274503647, 'learning_rate': 2.4137931034482762e-06, 'epoch': 0.0}
+
+  0%|          | 14/3844 [01:57<6:59:30,  6.57s/it]
+
+  0%|          | 15/3844 [02:02<6:34:46,  6.19s/it]
+{'loss': 1.9438, 'grad_norm': 0.7984747986222304, 'learning_rate': 2.5862068965517246e-06, 'epoch': 0.0}
+Total Loss: 2.449151039123535, NLL Loss: 2.426609516143799, Router Loss: 2.254150867462158, weight: 0.01
+Total Loss: 1.9003551006317139, NLL Loss: 1.878429889678955, Router Loss: 2.1925225257873535, weight: 0.01
+
+  0%|          | 16/3844 [02:07<6:15:31,  5.89s/it]
+Total Loss: 2.3613121509552, NLL Loss: 2.3384950160980225, Router Loss: 2.281710147857666, weight: 0.01
+
+  0%|          | 17/3844 [02:14<6:34:34,  6.19s/it]
+{'loss': 1.9719, 'grad_norm': 0.8252757922201018, 'learning_rate': 2.931034482758621e-06, 'epoch': 0.0}
+Total Loss: 1.7131052017211914, NLL Loss: 1.6916441917419434, Router Loss: 2.1460976600646973, weight: 0.01
+Total Loss: 2.278355360031128, NLL Loss: 2.254995346069336, Router Loss: 2.3359923362731934, weight: 0.01
+
+  0%|          | 18/3844 [02:20<6:24:28,  6.03s/it]
+Total Loss: 2.4053120613098145, NLL Loss: 2.3831498622894287, Router Loss: 2.2162108421325684, weight: 0.01
+
+  0%|          | 19/3844 [02:26<6:33:14,  6.17s/it]
+{'loss': 1.932, 'grad_norm': 0.8219892334251563, 'learning_rate': 3.2758620689655175e-06, 'epoch': 0.0}
+Total Loss: 2.0366291999816895, NLL Loss: 2.014949083328247, Router Loss: 2.1680145263671875, weight: 0.01
+Total Loss: 2.2288150787353516, NLL Loss: 2.207052707672119, Router Loss: 2.176240921020508, weight: 0.01
+{'loss': 1.9327, 'grad_norm': 0.8196406901743206, 'learning_rate': 3.448275862068966e-06, 'epoch': 0.01}
+
+  1%|          | 20/3844 [02:33<6:35:29,  6.21s/it]
+Total Loss: 2.26340913772583, NLL Loss: 2.239994764328003, Router Loss: 2.341435432434082, weight: 0.01
+
+  1%|          | 21/3844 [02:38<6:16:19,  5.91s/it]
+Total Loss: 1.7236518859863281, NLL Loss: 1.702111005783081, Router Loss: 2.1540937423706055, weight: 0.01
+
+  1%|          | 22/3844 [02:44<6:24:56,  6.04s/it]
+{'loss': 1.9428, 'grad_norm': 0.8292929319967384, 'learning_rate': 3.793103448275862e-06, 'epoch': 0.01}
+Total Loss: 2.1447033882141113, NLL Loss: 2.1229703426361084, Router Loss: 2.1733102798461914, weight: 0.01
+Total Loss: 1.3325631618499756, NLL Loss: 1.308474063873291, Router Loss: 2.408907413482666, weight: 0.01
+{'loss': 1.9496, 'grad_norm': 0.8877594630634492, 'learning_rate': 3.96551724137931e-06, 'epoch': 0.01}
+
+  1%|          | 23/3844 [02:53<7:11:55,  6.78s/it]
+Total Loss: 1.718090534210205, NLL Loss: 1.6963400840759277, Router Loss: 2.175050973892212, weight: 0.01
+
+  1%|          | 24/3844 [02:58<6:40:19,  6.29s/it]
+Total Loss: 1.7711211442947388, NLL Loss: 1.7490166425704956, Router Loss: 2.2104532718658447, weight: 0.01
+
+  1%|          | 25/3844 [03:06<7:21:04,  6.93s/it]
+{'loss': 1.8916, 'grad_norm': 0.8380000162164123, 'learning_rate': 4.310344827586207e-06, 'epoch': 0.01}
+Total Loss: 2.199364185333252, NLL Loss: 2.1764321327209473, Router Loss: 2.2931933403015137, weight: 0.01
+Total Loss: 1.6836497783660889, NLL Loss: 1.6621800661087036, Router Loss: 2.146965503692627, weight: 0.01
+
+  1%|          | 26/3844 [03:15<8:03:50,  7.60s/it]
+Total Loss: 1.8506404161453247, NLL Loss: 1.8284929990768433, Router Loss: 2.2147371768951416, weight: 0.01
+
+  1%|          | 27/3844 [03:20<7:12:51,  6.80s/it]
+{'loss': 1.8328, 'grad_norm': 0.747899022050608, 'learning_rate': 4.655172413793104e-06, 'epoch': 0.01}
+Total Loss: 1.9741867780685425, NLL Loss: 1.9518243074417114, Router Loss: 2.2362492084503174, weight: 0.01
+Total Loss: 2.044447183609009, NLL Loss: 2.0218987464904785, Router Loss: 2.2548508644104004, weight: 0.01
+
+  1%|          | 28/3844 [03:26<6:50:49,  6.46s/it]
+Total Loss: 1.9891588687896729, NLL Loss: 1.9673104286193848, Router Loss: 2.184847831726074, weight: 0.01
+Total Loss: 2.255422592163086, NLL Loss: 2.233464241027832, Router Loss: 2.195828914642334, weight: 0.01
+{'loss': 1.9754, 'grad_norm': 0.8971559917202172, 'learning_rate': 5e-06, 'epoch': 0.01}
+
+  1%|          | 29/3844 [03:31<6:17:15,  5.93s/it]
+Total Loss: 2.104938507080078, NLL Loss: 2.0827126502990723, Router Loss: 2.222590446472168, weight: 0.01
+{'loss': 1.9417, 'grad_norm': 0.9147308999795649, 'learning_rate': 5.172413793103449e-06, 'epoch': 0.01}
+

@@ -1,0 +1,5 @@
+./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert_2/checkpoint-1200/only_share/PLE_TCM_cot
+Processing PLE_TCM_cot
+srun: error: SH-IDC1-10-140-0-177: task 0: Exited with exit code 1
+Evaluating PLE_TCM_cot
+srun: error: SH-IDC1-10-140-0-177: task 0: Exited with exit code 1

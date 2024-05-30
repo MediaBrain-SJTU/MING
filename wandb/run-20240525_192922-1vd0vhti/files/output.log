@@ -1,0 +1,70 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-7B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/3844 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+  0%|          | 1/3844 [00:32<35:07:50, 32.91s/it]
+{'loss': 2.3806, 'grad_norm': 1.581529897254532, 'learning_rate': 1.7241379310344828e-07, 'epoch': 0.0}
+
+  0%|          | 2/3844 [00:54<28:07:48, 26.36s/it]
+
+
+  0%|          | 4/3844 [01:39<25:17:03, 23.70s/it]
+
+  0%|          | 5/3844 [01:51<20:44:08, 19.44s/it]
+{'loss': 2.4121, 'grad_norm': 1.6366468881032425, 'learning_rate': 8.620689655172415e-07, 'epoch': 0.0}
+
+  0%|          | 6/3844 [02:10<20:52:18, 19.58s/it]
+[2024-05-25 19:32:08,307] [WARNING] [stage3.py:2069:step] 1 pytorch allocator cache flushes since last step. this happens when there is high memory pressure and is detrimental to performance. if this is happening frequently consider adjusting settings to reduce memory consumption. If you are unable to make the cache flushes go away consider adding get_accelerator().empty_cache() calls in your training loop to ensure that all ranks flush their caches at the same time
+
+  0%|          | 7/3844 [02:34<22:23:42, 21.01s/it]
+
+  0%|          | 8/3844 [02:53<21:36:40, 20.28s/it]
+
+  0%|          | 9/3844 [03:11<20:51:48, 19.58s/it]
+
+  0%|          | 10/3844 [03:27<19:37:54, 18.43s/it]
+
+  0%|          | 11/3844 [03:45<19:29:39, 18.31s/it]
+
+  0%|          | 12/3844 [03:59<17:55:11, 16.84s/it]
+
+  0%|          | 13/3844 [04:16<18:08:27, 17.05s/it]
+
+
+  0%|          | 15/3844 [04:53<18:35:51, 17.49s/it]
+{'loss': 2.4129, 'grad_norm': 1.6675933664008673, 'learning_rate': 2.5862068965517246e-06, 'epoch': 0.0}
+
+  0%|          | 16/3844 [05:08<17:51:22, 16.79s/it]
+
+  0%|          | 17/3844 [05:27<18:36:52, 17.51s/it]
+
+  0%|          | 18/3844 [05:44<18:24:41, 17.32s/it]
+
+  0%|          | 19/3844 [06:03<19:00:14, 17.89s/it]
+
+
+  1%|          | 21/3844 [06:39<18:43:04, 17.63s/it]
+{'loss': 2.2594, 'grad_norm': 1.6201870509896614, 'learning_rate': 3.620689655172414e-06, 'epoch': 0.01}
+
+
+  1%|          | 23/3844 [07:25<21:44:48, 20.49s/it]
+{'loss': 2.3899, 'grad_norm': 1.7046987842529102, 'learning_rate': 3.96551724137931e-06, 'epoch': 0.01}
+
+
+  1%|          | 25/3844 [08:05<22:05:10, 20.82s/it]
+{'loss': 2.3293, 'grad_norm': 1.7374521135425782, 'learning_rate': 4.310344827586207e-06, 'epoch': 0.01}
+
+
+  1%|          | 27/3844 [08:43<20:22:44, 19.22s/it]
+
+  1%|          | 28/3844 [08:59<19:22:50, 18.28s/it]
+{'loss': 2.2738, 'grad_norm': 1.7019248624533614, 'learning_rate': 4.8275862068965525e-06, 'epoch': 0.01}
+
+  1%|          | 29/3844 [09:11<17:16:21, 16.30s/it]
+
+  1%|          | 30/3844 [09:27<17:12:21, 16.24s/it]
+
+  1%|          | 31/3844 [09:42<16:52:38, 15.93s/it]
+
+  1%|          | 32/3844 [09:58<16:57:28, 16.01s/it]
+

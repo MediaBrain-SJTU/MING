@@ -14,6 +14,7 @@ ming.egg-info/top_level.txt
 ming/eval/__init__.py
 ming/eval/average_attention.py
 ming/eval/eval_em.py
+ming/eval/eval_gpt4.py
 ming/eval/eval_humaneval.py
 ming/eval/gen_tiny_cmexam.py
 ming/eval/gen_tiny_mmedbench.py
@@ -23,6 +24,7 @@ ming/eval/gt_evaluator.py
 ming/eval/huatuo_med_qa.py
 ming/eval/merge_lora_molora_weights.py
 ming/eval/model_diverse_gen.py
+ming/eval/model_gen_vllm.py
 ming/eval/model_med_qa.py
 ming/eval/model_mmedbench_qa.py
 ming/eval/self_distill.py

@@ -1,0 +1,10 @@
+./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert/no_share/CBLUE
+Processing CBLUE
+srun: error: SH-IDC1-10-140-0-173: task 0: Terminated
+srun: Force Terminated StepId=14439277.0
+srun: Easily find out why your job was killed by following the link below:
+	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
+Evaluating CBLUE
+slurmstepd: error: *** JOB 14439277 ON SH-IDC1-10-140-0-173 CANCELLED AT 2024-05-29T23:11:59 DUE TO PREEMPTION ***
+srun: got SIGCONT
+srun: forcing job termination

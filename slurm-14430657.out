@@ -1,0 +1,8 @@
+./logs/ming-moe-clinical-v2/qwen1.5-1.8b-molora-r16a32_share_expert/only_share/cmmlu_cot
+Processing cmmlu_cot
+srun: error: Could not open stdout file: No such file or directory
+Evaluating cmmlu_cot
+srun: Job 14430657 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Job 14430657 step creation still disabled, retrying (Requested nodes are busy)
+slurmstepd: error: *** JOB 14430657 ON SH-IDC1-10-140-0-173 CANCELLED AT 2024-05-29T14:11:47 ***
+srun: error: Unable to create step for job 14430657: Job/step already completing or completed

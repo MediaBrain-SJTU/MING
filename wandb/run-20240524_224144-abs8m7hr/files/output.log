@@ -1,0 +1,33 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-1.8B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/3844 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+  0%|          | 1/3844 [00:32<34:54:03, 32.69s/it]
+
+  0%|          | 2/3844 [00:39<18:50:25, 17.65s/it]
+
+  0%|          | 3/3844 [00:47<14:01:33, 13.15s/it]
+
+  0%|          | 4/3844 [00:55<11:43:29, 10.99s/it]
+{'loss': 1.7618, 'grad_norm': 0.7464869715340157, 'learning_rate': 6.896551724137931e-07, 'epoch': 0.0}
+
+
+  0%|          | 6/3844 [01:07<8:45:16,  8.21s/it]
+{'loss': 1.8148, 'grad_norm': 0.7161504229218939, 'learning_rate': 1.0344827586206898e-06, 'epoch': 0.0}
+
+  0%|          | 7/3844 [01:16<8:58:42,  8.42s/it]
+
+
+  0%|          | 9/3844 [01:29<7:52:01,  7.38s/it]
+{'loss': 1.8031, 'grad_norm': 0.7627089439821984, 'learning_rate': 1.5517241379310346e-06, 'epoch': 0.0}
+
+
+  0%|          | 11/3844 [01:40<7:06:29,  6.68s/it]
+{'loss': 1.8884, 'grad_norm': 0.7362758145248762, 'learning_rate': 1.896551724137931e-06, 'epoch': 0.0}
+
+
+  0%|          | 13/3844 [01:50<6:12:56,  5.84s/it]
+
+  0%|          | 14/3844 [01:58<6:54:40,  6.50s/it]
+{'loss': 1.7627, 'grad_norm': 0.7532013152639739, 'learning_rate': 2.4137931034482762e-06, 'epoch': 0.0}
+

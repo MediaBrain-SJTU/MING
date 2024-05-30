@@ -1,0 +1,9 @@
+fusermount: entry for /mnt/petrelfs/liaoyusheng/oss not found in /etc/mtab
+fusermount: failed to access mountpoint /mnt/petrelfs/liaoyusheng/oss: Permission denied
+Processing cmmlu_cot
+srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
+slurmstepd: error: *** JOB 14431563 ON SH-IDC1-10-140-0-177 CANCELLED AT 2024-05-29T14:53:20 ***
+srun: Easily find out why your job was killed by following the link below:
+	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
+srun: got SIGCONT
+srun: forcing job termination

@@ -1,0 +1,6 @@
+<1> Error in mount! Try again...
+s3fs: unable to access MOUNTPOINT /mnt/petrelfs/liaoyusheng/oss: Software caused connection abort
+<2> Error in mount! Exit!
+Processing CBLUE
+srun: error: SH-IDC1-10-140-1-166: task 0: Exited with exit code 1
+Evaluating CBLUE

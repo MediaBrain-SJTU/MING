@@ -1,0 +1,59 @@
+/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/peft/utils/save_and_load.py:154: UserWarning: Could not find a config file in /mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-1.8B-Chat - will assume that the vocabulary was not modified.
+  warnings.warn(
+  0%|          | 0/492083 [00:00<?, ?it/s]/mnt/petrelfs/liaoyusheng/miniconda3/envs/ming/lib/python3.10/site-packages/torch/utils/checkpoint.py:429: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.
+  warnings.warn(
+  0%|          | 1/492083 [00:04<682:48:59,  5.00s/it]
+{'loss': 1.8886, 'grad_norm': 2.3651454897512596, 'learning_rate': 1.35473819684346e-08, 'epoch': 0.0}
+
+  0%|          | 2/492083 [00:44<3445:17:54, 25.21s/it]
+
+  0%|          | 3/492083 [00:46<2004:13:44, 14.66s/it]
+
+  0%|          | 4/492083 [00:48<1325:39:47,  9.70s/it]
+
+  0%|          | 5/492083 [00:50<951:54:14,  6.96s/it]
+
+  0%|          | 6/492083 [00:52<725:15:09,  5.31s/it]
+
+  0%|          | 7/492083 [00:54<582:16:48,  4.26s/it]
+
+  0%|          | 8/492083 [00:56<488:26:01,  3.57s/it]
+
+  0%|          | 9/492083 [00:59<426:48:49,  3.12s/it]
+
+  0%|          | 10/492083 [01:01<386:02:05,  2.82s/it]
+
+  0%|          | 11/492083 [01:03<357:23:41,  2.61s/it]
+
+  0%|          | 12/492083 [01:05<337:32:51,  2.47s/it]
+
+  0%|          | 13/492083 [01:07<324:10:38,  2.37s/it]
+
+  0%|          | 14/492083 [01:09<314:11:07,  2.30s/it]
+
+  0%|          | 15/492083 [01:11<307:18:01,  2.25s/it]
+
+  0%|          | 16/492083 [01:14<302:58:54,  2.22s/it]
+
+  0%|          | 17/492083 [01:16<302:18:19,  2.21s/it]
+
+  0%|          | 18/492083 [01:18<303:49:02,  2.22s/it]
+
+  0%|          | 19/492083 [01:20<305:07:42,  2.23s/it]
+
+
+  0%|          | 21/492083 [01:25<302:23:01,  2.21s/it]
+{'loss': 1.5933, 'grad_norm': 1.9383073723169864, 'learning_rate': 2.844950213371266e-07, 'epoch': 0.0}
+
+  0%|          | 22/492083 [01:27<298:12:40,  2.18s/it]
+
+  0%|          | 23/492083 [01:29<296:57:53,  2.17s/it]
+
+  0%|          | 24/492083 [01:31<299:10:40,  2.19s/it]
+
+  0%|          | 25/492083 [01:33<297:58:22,  2.18s/it]
+
+  0%|          | 26/492083 [01:36<300:25:16,  2.20s/it]
+
+  0%|          | 27/492083 [01:38<303:08:18,  2.22s/it]
+

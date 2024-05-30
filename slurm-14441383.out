@@ -1,0 +1,9 @@
+Processing CBLUE
+srun: error: SH-IDC1-10-140-0-173: task 0: Terminated
+srun: Force Terminated StepId=14441383.0
+srun: Easily find out why your job was killed by following the link below:
+	https://docs.phoenix.sensetime.com/FAQ/SlurmFAQ/Find-out-why-my-job-was-killed/
+Evaluating CBLUE
+slurmstepd: error: *** JOB 14441383 ON SH-IDC1-10-140-0-173 CANCELLED AT 2024-05-29T23:09:42 DUE TO PREEMPTION ***
+srun: got SIGCONT
+srun: forcing job termination
