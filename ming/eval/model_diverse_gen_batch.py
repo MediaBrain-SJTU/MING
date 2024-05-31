@@ -7,7 +7,7 @@ from tqdm import tqdm, trange
 
 
 from ming.conversations import conv_templates, SeparatorStyle
-from ming.model.builder import load_pretrained_model, load_molora_pretrained_model
+from ming.model.builder import load_pretrained_model, load_molora_pretrained_model, load_pretrained_orth_model
 from ming.utils import disable_torch_init, get_model_name_from_path
 # from llava.mm_utils import tokenizer_image_token, process_images, get_model_name_from_path
 from torch.utils.data import Dataset, DataLoader
@@ -107,7 +107,9 @@ def eval_model(args):
     # pdb.set_trace()
 
     # else:
-    if "molora" in model_path:
+    if "orth" in model_path:
+        tokenizer, model, context_len, tokenizer_with_prefix_space = load_pretrained_orth_model(model_path, args.model_base, args.lora_name_or_path, use_logit_bias=args.use_logit_bias, only_load=args.only_load)
+    elif "molora" in model_path:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_molora_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load, expert_selection=args.expert_selection)
     else:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load)
@@ -299,6 +301,7 @@ if __name__ == "__main__":
     parser.add_argument("--only_load", choices=["attn", "ffn", "share", "no_share"], default=None)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--expert_selection", choices=["topk", "sampling"], default=None)
+    parser.add_argument("--lora_name_or_path", type=str, default=None)
     args = parser.parse_args()
 
     eval_model(args)

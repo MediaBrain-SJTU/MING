@@ -11,7 +11,7 @@ def convert_to_automodel(model_path, model_base, load_8bit=False, load_4bit=Fals
     disable_torch_init()
     # assert model_path contains adapter_model.bin and non_lora_trainables.bin two files
     model_name = get_model_name_from_path(model_path)
-    tokenizer, model, context_len, tokenizer_with_adapter = load_molora_pretrained_model(model_path, model_base, model_name)
+    tokenizer, model, context_len, tokenizer_with_adapter = load_molora_pretrained_model(model_path, model_base, model_name, only_load="attn")
     if save_path is None:
         return 
 

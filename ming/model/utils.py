@@ -11,10 +11,12 @@ from torch.nn import CrossEntropyLoss
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from typing import Optional, List, Union, Tuple
 from safetensors import safe_open
-
+import warnings
 
 local_rank = None
 
+def transpose(weight, fan_in_fan_out):
+    return weight.T if fan_in_fan_out else weight
 
 def rank0_print(*args):
     if local_rank == 0:
@@ -24,6 +26,31 @@ def mark_only_lora_as_trainable(model: nn.Module, bias) -> None:
     for n, p in model.named_parameters():
         if "lora" not in n:
             p.requires_grad = False
+        if "lora" in n and "base" in n:
+            p.requires_grad = False
+
+    if bias == "none":
+        return
+
+    if bias == "all":
+        for n, p in model.named_parameters():
+            if "bias" in n:
+                p.requires_grad = True
+    elif bias == "lora_only":
+        for m in model.modules():
+            if isinstance(m, LoRALayer) and hasattr(m, "bias") and m.bias is not None:
+                m.bias.requires_grad = True
+    else:
+        raise NotImplementedError(f"Requested bias: {bias}, is not implemented.")
+
+def mark_only_orthlora_as_trainable(model: nn.Module, bias) -> None:
+    for n, p in model.named_parameters():
+        if "lora" not in n:
+            p.requires_grad = False
+        elif "lora" in n and "base" in n:
+            p.requires_grad = False
+        elif "lora" in n and "orth" in n:
+            p.requires_grad = True
 
     if bias == "none":
         return
@@ -65,11 +92,26 @@ def create_orthlora_module(lora_config, target, model_args, add_bias=True):
                                 lora_alpha=lora_config.lora_alpha,
                                 lora_dropout=lora_config.lora_dropout,
                                 use_rslora=lora_config.use_rslora,
-                                merge_weights=lora_config.merge_weights,
                                 bias=add_bias)
     return new_module
 
 def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2DecoderLayer, lora_name_or_path=None, inference_mode=False):
+    
+    # first merge lora attention weights from the lora_name_or_path/adapter_model.safetensors
+    # attn_lora_params = {}
+    # rank0_print(lora_name_or_path)
+    # with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
+    #     for k in f.keys():
+    #         attn_lora_params[k] = f.get_tensor(k)
+    # initial_base_params = {}
+    # for k in attn_lora_params:
+    #     # find self_attn.k_proj.lora_A.weight 
+    #     if "self_attn" in k and ("lora_A" in k or "lora_B" in k):
+    #         initial_base_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = attn_lora_params[k]
+    # incompatible_keys = model.load_state_dict(initial_base_params, strict=False)
+    # rank0_print(incompatible_keys)
+    # model.merge_and_unload()
+
     # find linear modules with "switch" in their attributes
     key_list = [key for key, _ in model.named_modules()]
     target_module_names = set()
@@ -109,41 +151,48 @@ def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2Decoder
         
         del target
     
-    # print(lora_name_or_path)
     if lora_name_or_path is not None and os.path.exists(lora_name_or_path):
-        print(f"Initializing base LoRA from {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
-        lora_params = {}
+        print(f"Initializing base LoRA weights from share_experts in {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
+        # shared_ffn_lora_params = {}
         # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), map_location='cpu')
         # with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
         #     for k in f.keys():
         #         lora_params[k] = f.get_tensor(k)
-        lora_params = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
-            # lora_params = {(k[11:] if k.startswith('base_model.') else k): v for k, v in lora_params.items()}
-            # if any(k.startswith('model.model.') for k in lora_params):
-            #     lora_params = {(k[6:] if k.startswith('model.') else k): v for k, v in lora_params.items()}
-            # print("LoRA Parameters: ", lora_params.keys())
+        shared_ffn_lora_params = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
+        shared_ffn_lora_params = {(k[11:] if k.startswith('base_model.') else k): v for k, v in shared_ffn_lora_params.items()}
+        if any(k.startswith('model.model.') for k in shared_ffn_lora_params):
+            shared_ffn_lora_params = {(k[6:] if k.startswith('model.') else k): v for k, v in shared_ffn_lora_params.items()}
+
 
         initial_base_params = {}
-        for k in lora_params:
+        for k in shared_ffn_lora_params:
             if "mlp" in k and "lora" in k and "share_experts" in k:
                 initial_base_params[k.replace("share_experts.lora_A", "base.lora_A").replace(
                     "share_experts.lora_B", "base.lora_B"
-                )] = lora_params[k]
+                )] = shared_ffn_lora_params[k]
             elif "self_attn" in k and "lora" in k:
-                initial_base_params[k] = lora_params[k]
+                initial_base_params[k] = shared_ffn_lora_params[k]
             elif "mlp" in k and ".experts." in k:
                 continue 
             elif "switch" in k:
                 continue
             else:
-                print(k)
+                rank0_print(k)
                 exit(-1)
-        for k, v in initial_base_params.items():
-            print(k, v.shape)
+        # for k in attn_lora_params:
+        #     # find self_attn.k_proj.lora_A.weight 
+        #     if "self_attn" in k and ("lora_A" in k or "lora_B" in k):
+        #         initial_base_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = attn_lora_params[k]
+
             # else:
             #     initial_base_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = lora_params[k]
         # print("Loading Parameters: ", initial_molora_params.keys())
+        # for k, v in initial_base_params.items():
+        #     print(k)
+        # for k, v in model.state_dict().items():
+        #     print(k)
         incompatible_keys = model.load_state_dict(initial_base_params, strict=False)
+        # print(incompatible_keys)
         # print(incompatible_keys)
     else:
         print("No initialization for Base!")
@@ -161,6 +210,39 @@ def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2Decoder
     return model
 
 
+def merge_and_unload(model):
+    key_list = [key for key, _ in model.named_modules() if "lora" not in key]
+    for key in key_list:
+        try:
+            parent, target, target_name = _get_submodules(model, key)
+        except AttributeError:
+            continue
+        if isinstance(target, LoRALayer):
+            bias = target.bias is not None
+            new_module = torch.nn.Linear(target.in_features, target.out_features, bias=bias)
+            target.merge()
+            replace_module(parent, target_name, new_module, target)
+
+
+
+    return model
+
+def replace_module(parent_module, child_name, new_module, old_module):
+    setattr(parent_module, child_name, new_module)
+    new_module.weight = old_module.weight
+    if hasattr(old_module, "bias"):
+        if old_module.bias is not None:
+            new_module.bias = old_module.bias
+
+    if getattr(old_module, "state", None) is not None:
+        new_module.state = old_module.state
+        new_module.to(old_module.weight.device)
+
+    # dispatch to correct device
+    for name, module in new_module.named_modules():
+        if "lora_" in name:
+            module.to(old_module.weight.device)
+            
 def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2DecoderLayer, lora_name_or_path=None, inference_mode=False):
     # find linear modules with "switch" in their attributes
     key_list = [key for key, _ in model.named_modules()]
@@ -187,17 +269,18 @@ def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2Decode
             add_bias = False
         # new_module = create_mixoflora_module(lora_config, target, num_experts, num_experts_per_token, enable_router_loss, True if expert_selection == "sampling" else False, use_lbl_loss, add_bias=add_bias)
         new_module = create_mixoflora_module(lora_config, target, model_args, add_bias=add_bias)
-        setattr(parent, target_name, new_module)
-        new_module.weight = target.weight 
-        if hasattr(target, "bias"):
-            if target.bias is not None:
-                new_module.bias = target.bias
+        # setattr(parent, target_name, new_module)
+        # new_module.weight = target.weight 
+        # if hasattr(target, "bias"):
+        #     if target.bias is not None:
+        #         new_module.bias = target.bias
 
-        new_module.to(target.weight.device)
+        # new_module.to(target.weight.device)
         
-        if getattr(target, "state", None) is not None:
-            new_module.state = target.state
-            new_module.to(target.weight.device)
+        # if getattr(target, "state", None) is not None:
+        #     new_module.state = target.state
+        #     new_module.to(target.weight.device)
+        replace_module(parent, target_name, new_module, target)
         
         del target
     
@@ -292,14 +375,13 @@ class OrthLoRALinear(nn.Linear, LoRALayer):
         
         init_lora_weights = kwargs.pop("init_lora_weights", True)
         self.fan_in_fan_out = fan_in_fan_out
-        # moe parameters
-        self.expert_sampling = expert_sampling
+
         self.use_rslora = use_rslora
         nn.Linear.reset_parameters(self)
         
         if r > 0:
-            self.base = nn.ModuleDict({"lora_A": nn.Linear(in_features, r, False, dtype=torch.float32), "lora_B": nn.Linear(r, out_features, False, dtype=torch.float32)})
-            self.orth = nn.ModuleDict({"lora_A": nn.Linear(in_features, r, False, dtype=torch.float32), "lora_B": nn.Linear(r, out_features, False, dtype=torch.float32)})
+            self.base = nn.ModuleDict({"lora_A": nn.Linear(in_features, 2 * r, False, dtype=torch.float32), "lora_B": nn.Linear(2 * r, out_features, False, dtype=torch.float32)})
+            self.orth = nn.ModuleDict({"lora_A": nn.Linear(in_features, 2 * r, False, dtype=torch.float32), "lora_B": nn.Linear(2 * r, out_features, False, dtype=torch.float32)})
             self.scaling = self.lora_alpha / (math.sqrt(self.r) if self.use_rslora else self.r)
             self.weight.requires_grad = False
             
@@ -355,6 +437,23 @@ class OrthLoRALinear(nn.Linear, LoRALayer):
         result = result.to(previous_dtype)
         
         return result
+    
+    def merge(self):
+        if self.merged:
+            warnings.warn("Already merged. Nothing to do.")
+            return 
+        if self.r > 0:
+            self.weight.data += (
+                transpose(
+                    self.base['lora_B'].weight @ self.base['lora_A'].weight,
+                    self.fan_in_fan_out
+                ) * self.scaling + \
+                    transpose(
+                        self.orth['lora_B'].weight @ self.orth['lora_A'].weight,
+                        self.fan_in_fan_out
+                    ) * self.scaling 
+            )
+            self.merged = True
         
 
 class MoLoRALinear(nn.Linear, LoRALayer):

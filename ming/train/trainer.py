@@ -172,7 +172,13 @@ class MINGTrainer(Trainer):
                 self.model.config.save_pretrained(output_dir)
                 torch.save(weight_to_save, os.path.join(output_dir, f'non_lora_trainables.bin'))
             super(MINGTrainer, self)._save_checkpoint(model, trial, metrics)
-            
+        elif getattr(self.args, "use_orthogonal", False):
+            from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
+            checkpoint_folder = f"{PREFIX_CHECKPOINT_DIR}-{self.state.global_step}"
+            # Only save Adapter
+            run_dir = self._get_output_dir(trial=trial)
+            output_dir = os.path.join(run_dir, checkpoint_folder)
+            keys_to_match = ["mlp.gate_proj.orth"]
         else:
             super(MINGTrainer, self)._save_checkpoint(model, trial, metrics)
 
@@ -221,11 +227,11 @@ class MINGTrainer(Trainer):
         orthogonal_loss = torch.tensor(0.).to(model.device)
         cmp_item = 0
         for name, param in self.model.named_parameters():
-            if "share_experts" in name and "lora_A" in name:
+            if "base" in name and "lora_A" in name:
                 # find all params that start with name.split("share_experts")[0]
-                prefix = name.split("share_experts")[0]
+                prefix = name.split("base")[0]
                 for name_, param_ in self.model.named_parameters():
-                    if prefix + "experts" in name_ and "lora_A" in name_:
+                    if prefix + "orth" in name_ and "lora_A" in name_:
                         # print(name, name_)
                         # print(param.shape, param_.shape)
                         # print(param)
@@ -237,6 +243,8 @@ class MINGTrainer(Trainer):
                         # print(param.shape, param_.shape)
                         cmp_item += 1
                         orthogonal_loss += torch.abs(torch.mm(param, param_.transpose(0, 1))).sum() # [r * dim] * [dim * r]
+                        break # once find, we find the layers.x.mlp.{}_proj.base.lora_A and layers.x.mlp.{}_proj.orth.lora_A 
+                    
                         # with deepspeed.zero.GatheredParameters(param):
                         #     with deepspeed.zero.GatheredParameters(param_):
                         #         # print(name, name_)
@@ -254,7 +262,7 @@ class MINGTrainer(Trainer):
                 #         orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
                 #         break # target modules have been matched
         # l2-normalization for loranew_A/B
-        orthogonal_loss /= 8
+        # orthogonal_loss /
 
         lamda_1 = self.args.lamda_1
 
@@ -284,4 +292,4 @@ class MINGTrainer(Trainer):
         else:
             self.accelerator.backward(floss)
 
-        return loss.detach() / self.args.gradient_accumulation_steps + orthogonal_loss * lamda_1
+        return loss.detach() 

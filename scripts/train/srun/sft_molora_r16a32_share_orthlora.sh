@@ -2,7 +2,7 @@
 #SBATCH -J sft_clinical_qwen
 #SBATCH --partition=medai_llm
 #SBATCH -N1
-#SBATCH --quotatype=auto
+#SBATCH --quotatype=spot
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks-per-node=1    
@@ -46,8 +46,7 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --rdzv_id $MASTER_PORT --rdzv_backend c10d --rdzv_endpoint $head_node_ip:$MASTER_PORT \
     --node_rank $SLURM_PROCID \
     ming/train/train_mem.py \
-    --lora_enable True --lora_r 16 --lora_alpha 32 --num_experts 8 --num_experts_per_token 2 \
-    --share_expert True \
+    --lora_attn_enable True --lora_r 16 --lora_alpha 32 \
     --deepspeed scripts/zero3.json \
     --model_name_or_path $MODEL_BASE \
     --train_data_path ${DATA_PATH}/train.json \
@@ -61,7 +60,7 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 300 \
-    --save_total_limit 10 \
+    --save_total_limit 2 \
     --learning_rate 2e-4 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
@@ -72,6 +71,7 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --gradient_checkpointing True \
     --lora_name_or_path ${LORA_PATH} \
     --dataloader_num_workers 1 \
+    --use_orthogonal True \
     --lazy_preprocess True \
     --report_to wandb \
     --lamda_1 0.001 \

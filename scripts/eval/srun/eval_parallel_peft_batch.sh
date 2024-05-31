@@ -2,14 +2,14 @@
 #SBATCH -J eval_qwen
 #SBATCH --partition=medai_llm
 #SBATCH -N1
-#SBATCH --quotatype=spot
+#SBATCH --quotatype=auto
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --ntasks-per-node=1    
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
 ###SBATCH --kill-on-bad-exit=1
-bash ~/add_oss.sh
+
 
 TASK_PATH="$1"
 MODEL_BASE="$2"
@@ -17,8 +17,9 @@ MODEL_PATH="$3"
 CKPT="$4" # 使用实际的检查点名称替换CHECKPOINT_NAME
 LOGS_BASE_PATH="$5"
 DATASET="$6"
+LORA_PATH="$7"
 
-DATA_PATH=${TASK_PATH}/test
+DATA_PATH=${TASK_PATH}/medical_test
 mkdir -p ${LOGS_BASE_PATH}/${CKPT}/${DATASET}
 
 
@@ -30,7 +31,8 @@ srun -p medai_llm --quotatype=auto --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CK
     --answers-file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
     --temperature 0 \
     --conv-mode qwen \
-    --resume 
+    --resume \
+    --lora_name_or_path ${LORA_PATH}
 
 echo "Evaluating ${DATASET}"
 srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/eval.log" python -m ming.eval.eval_em \

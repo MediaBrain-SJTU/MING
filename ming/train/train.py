@@ -36,7 +36,7 @@ from transformers.trainer_pt_utils import LabelSmoother
 from torch.utils.data import Dataset
 from ming.conversations import get_default_conv_template, SeparatorStyle
 import pdb
-from ming.model.utils import get_mixoflora_model, multiple_path_forward, lbl_loss_forward
+from ming.model.utils import get_mixoflora_model, get_orthlora_model, multiple_path_forward, lbl_loss_forward
 import warnings
 from transformers.models.qwen2.modeling_qwen2 import Qwen2DecoderLayer
 from ming.train.trainer import MINGTrainer
@@ -108,6 +108,10 @@ class TrainingArguments(transformers.TrainingArguments):
     # orthogonal share
     lamda_1: Optional[float] = field(default=0.5)
     lamda_2: Optional[float] = field(default=0.)
+    
+    # orthogonal twostage training
+    use_orthogonal: Optional[bool] = field(default=False)
+    
 
 def maybe_zero_3(param, ignore_status=False, name=None):
     from deepspeed import zero
@@ -125,7 +129,7 @@ def maybe_zero_3(param, ignore_status=False, name=None):
 # Borrowed from peft.utils.get_peft_model_state_dict
 def get_peft_state_maybe_zero_3(named_params, bias):
     if bias == "none":
-        to_return = {k: t for k, t in named_params if "lora_" in k and "experts" not in k}
+        to_return = {k: t for k, t in named_params if "lora_" in k and "experts" not in k and t.requires_grad}
     elif bias == "all":
         to_return = {k: t for k, t in named_params if "lora_" in k or "bias" in k}
     elif bias == "lora_only":
@@ -523,7 +527,7 @@ def train():
             model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
 
     if training_args.lora_enable or training_args.lora_attn_enable:
-        from peft import LoraConfig, get_peft_model
+        from peft import LoraConfig, get_peft_model, PeftModel
         import peft 
         if peft.__version__ == "0.9.0":
             lora_config = LoraConfig(
@@ -552,8 +556,10 @@ def train():
             if training_args.fp16:
                 model.to(torch.float16)
         rank0_print("Adding LoRA adapters...")
-
-        model = get_peft_model(model, lora_config)
+        if training_args.use_orthogonal:
+            pass
+        else:
+            model = get_peft_model(model, lora_config)
         
     if model_args.num_experts > 1:
         # get mix of lora model
@@ -565,6 +571,11 @@ def train():
         training_args.molora = True 
     else:
         training_args.molora = False
+    if training_args.use_orthogonal:
+        rank0_print("Create orthogonal model...")
+        model = get_orthlora_model(model, model_args, lora_config=lora_config, lora_name_or_path=training_args.lora_name_or_path)
+        rank0_print("orthogonal model:", model)
+        
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_args.model_name_or_path, trust_remote_code=True,
                                                            cache_dir=training_args.cache_dir,
@@ -589,8 +600,8 @@ def train():
                                               inference_path=training_args.inference_path)
     # print(model)
     for n, p in model.named_parameters():
-        if "switch" in n:
-            p.requires_grad = True
+        if p.requires_grad:
+            rank0_print(n)
 
     trainer = MINGTrainer(model=model,
                     tokenizer=tokenizer,
@@ -614,6 +625,7 @@ def train():
         )
         if training_args.local_rank == 0 or training_args.local_rank == -1:
             model.config.save_pretrained(training_args.output_dir)
+            lora_config.save_pretrained(training_args.output_dir)
             model.save_pretrained(training_args.output_dir, state_dict=state_dict)
             torch.save(non_lora_state_dict, os.path.join(training_args.output_dir, 'non_lora_trainables.bin'))
     else:
