@@ -219,24 +219,28 @@ class MINGTrainer(Trainer):
         
         ########################### Regularization ##########################
         orthogonal_loss = torch.tensor(0.).to(model.device)
-        for name, param in self.model.state_dict().items():
+        cmp_item = 0
+        for name, param in self.model.named_parameters():
             if "share_experts" in name and "lora_A" in name:
                 # find all params that start with name.split("share_experts")[0]
                 prefix = name.split("share_experts")[0]
-                for name_, param_ in self.model.state_dict().items():
+                for name_, param_ in self.model.named_parameters():
                     if prefix + "experts" in name_ and "lora_A" in name_:
                         # print(name, name_)
                         # print(param.shape, param_.shape)
                         # print(param)
-                        # param = safe_get_full_fp32_param(param=param)
-                        # param_ = safe_get_full_fp32_param(param=param_)
+                        fparam = safe_get_full_fp32_param(param=param)
+                        param = param if fparam is None else fparam
+                        fparam_ = safe_get_full_fp32_param(param=param_)
+                        param_ = param_ if fparam_ is None else fparam_
                         # print(param)
-                        # print(param, param_)
-                        # orthogonal_loss += torch.abs(torch.mm(param, param_.transpose(0, 1))).sum() # [r * dim] * [dim * r]
-                        with deepspeed.zero.GatheredParameters(param):
-                            with deepspeed.zero.GatheredParameters(param_):
-                                # print(name, name_)
-                                orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
+                        # print(param.shape, param_.shape)
+                        cmp_item += 1
+                        orthogonal_loss += torch.abs(torch.mm(param, param_.transpose(0, 1))).sum() # [r * dim] * [dim * r]
+                        # with deepspeed.zero.GatheredParameters(param):
+                        #     with deepspeed.zero.GatheredParameters(param_):
+                        #         # print(name, name_)
+                        #         orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
                         #         if param is not None and param_ is not None:
                         #             print(param.shape, param_.shape)
                         # try:
@@ -250,14 +254,14 @@ class MINGTrainer(Trainer):
                 #         orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
                 #         break # target modules have been matched
         # l2-normalization for loranew_A/B
-
+        orthogonal_loss /= 8
 
         lamda_1 = self.args.lamda_1
 
 
         logger.info(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
 
-        print(loss.item(), orthogonal_loss.item())
+
         floss = loss + orthogonal_loss * lamda_1
 
         ######################################################################
