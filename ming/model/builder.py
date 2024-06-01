@@ -42,7 +42,9 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
         orth_lora_weights = {(k[11:] if k.startswith('base_model.') else k): v for k, v in orth_lora_weights.items()}
         if any(k.startswith('model.model.') for k in orth_lora_weights):
             orth_lora_weights = {(k[6:] if k.startswith('model.') else k): v for k, v in orth_lora_weights.items()}
-        orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
+        
+        # orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
+        
         model.load_state_dict(orth_lora_weights, strict=False)
         model = merge_and_unload(model)
         

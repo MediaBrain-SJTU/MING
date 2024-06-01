@@ -2,7 +2,7 @@ OSS_PATH=/mnt/hwfile/medai/jiangshuyang.p
 TASK_PATH=/mnt/hwfile/medai/jiangshuyang.p/datasets
 domains=("CMB_cot" "CMExam_cot" "cmmlu_cot" "ceval_cot" "PLE_Pharmacy_cot" "PLE_TCM_cot")
 # domains=("CBLUE" "cmmlu_cot" "ceval_cot" "PLE_Pharmacy_cot" "PLE_TCM_cot")
-# domains=("CBLUE")
+domains=("CBLUE")
 
 # MODEL_BASE=/mnt/petrelfs/jiangshuyang.p/models/models--Qwen--Qwen1.5-1.8B-Chat
 MODEL_BASE=/mnt/hwfile/medai/jiangshuyang.p/checkpoints/ming-moe-clinical-v2-qwen1.5-1.8b-molora-r16a32_share_expert_2_mergelora

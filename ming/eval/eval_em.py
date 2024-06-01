@@ -420,7 +420,7 @@ def squadv20_acc(line):
     return 0
 
 def cblue_score(args, questions):
-    answer_file = "/mnt/petrelfs/liaoyusheng/projects/MING/datas/test/CBLUE_structured.json"
+    answer_file = "/mnt/hwfile/medai/jiangshuyang.p/datasets/medical_test/CBLUE_structured.json"
     output_path = args.output_file.rsplit("/", 1)[0] + "results.json"
     dict_pred = process_generated_results(questions)
     
