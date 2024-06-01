@@ -1,7 +1,7 @@
 import os
 import warnings
 import shutil
-from copy import copy
+from copy import copy, deepcopy
 from safetensors import safe_open
 from safetensors.torch import load_file
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig
@@ -10,7 +10,7 @@ from ming.model.utils import get_mixoflora_model, get_orthlora_model, merge_and_
 import json
 
 
-def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8bit=False, load_4bit=False, use_logit_bias=False, only_load=None, device_map="auto", device="cuda"):
+def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8bit=False, load_4bit=False, use_logit_bias=False, only_load=None, switch_experts=True, device_map="auto", device="cuda"):
     kwargs = {"device_map": device_map}
 
     if device != "cuda":
@@ -37,19 +37,27 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
         print(f"Loading Base and Orthogonal LoRA weights from {model_path}")
         lora_cfg_pretrained = AutoConfig.from_pretrained(model_path)
         lora_config = PeftConfig.from_pretrained(model_path)
-        model = get_orthlora_model(model, lora_cfg_pretrained, lora_config, lora_name_or_path=lora_name_or_path)
+        model = get_orthlora_model(model, lora_cfg_pretrained, lora_config, lora_name_or_path=lora_name_or_path, inference_mode=True)
         orth_lora_weights = load_file(os.path.join(model_path, "model.safetensors"))
         orth_lora_weights = {(k[11:] if k.startswith('base_model.') else k): v for k, v in orth_lora_weights.items()}
         if any(k.startswith('model.model.') for k in orth_lora_weights):
             orth_lora_weights = {(k[6:] if k.startswith('model.') else k): v for k, v in orth_lora_weights.items()}
         
         # orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
-        
+
+        # orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
+        tuned_model = None
+        if switch_experts:
+            tuned_model = deepcopy(model)
+            tuned_orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
+            tuned_model.load_state_dict(tuned_orth_lora_weights, strict=False)
+            tuned_model = merge_and_unload(tuned_model)
         model.load_state_dict(orth_lora_weights, strict=False)
         model = merge_and_unload(model)
         
         print('Convert to FP16...')
         model.to(torch.float16)
+        tuned_model.to(torch.float16)
 
         tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base, add_prefix_space=True, trust_remote_code=True)
     else:
@@ -63,7 +71,7 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
     else:
         context_len = 2048
         
-    return tokenizer, model, context_len, tokenizer_with_prefix_space
+    return tokenizer, model, context_len, tokenizer_with_prefix_space, tuned_model
 
 
 def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, load_4bit=False, use_logit_bias=False, only_load=None, device_map="auto", device="cuda"):
@@ -198,7 +206,7 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
             if only_load == "no_share":
                 lora_cfg_pretrained.share_expert = False
                 
-            model = get_mixoflora_model(model, model_args=lora_cfg_pretrained, lora_config=lora_config)
+            model = get_mixoflora_model(model, model_args=lora_cfg_pretrained, lora_config=lora_config, inference_mode=True)
             if os.path.exists(os.path.join(model_path, 'non_lora_trainables.bin')):
                 non_lora_trainables = torch.load(os.path.join(model_path, 'non_lora_trainables.bin'), map_location='cpu')
                 non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}

@@ -249,7 +249,7 @@ class MINGTrainer(Trainer):
                         # print(param.shape, param_.shape)
                         # print(param)
                         # print(param.shape)
-                        # fparam = safe_get_full_fp32_param(param=param)
+                        fparam = safe_get_full_fp32_param(param=param)
                         # fparam = maybe_zero_3(param)
 
                         # with zero.GatheredParameters([param]):
@@ -259,29 +259,29 @@ class MINGTrainer(Trainer):
                         #     print(name, fparam)
                         #     print(e)
                         #     exit(-1)
-                        # param = param if fparam is None else fparam
-                        # fparam_ = safe_get_full_fp32_param(param=param_)
+                        param = param if fparam is None else fparam
+                        fparam_ = safe_get_full_fp32_param(param=param_)
                             # fparam_ = maybe_zero_3_nodetach(param_)
                             # with zero.GatheredParameters([param_]):
                             #     fparam_ = param_.data.clone()
-                            # param_ = param_ if fparam_ is None else fparam_
+                        param_ = param_ if fparam_ is None else fparam_
                             # # print(param_)
                             # # print(param.shape)
                             # param.to(fparam_.dtype)
                             # print(param.shape, fparam_.shape)
                             # cmp_item += 1
-
+                        orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
                         # break # once find, we find the layers.x.mlp.{}_proj.base.lora_A and layers.x.mlp.{}_proj.orth.lora_A 
                     
-                        with deepspeed.zero.GatheredParameters(param):
-                            with deepspeed.zero.GatheredParameters(param_):
+                        # with deepspeed.zero.GatheredParameters(param):
+                        #     with deepspeed.zero.GatheredParameters(param_):
                             
                         #     fparam_ = safe_get_full_fp32_param(param=param_)
                         #     param_ = param_ if fparam_ is None else fparam_
                         #         # print(name, name_)
                         #     param_ = param_.to(param.dtype)
-                                print(param.shape, param_.shape)
-                                orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
+                                # print(param.shape, param_.shape)
+                                # orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
                                 # if param is not None and param_ is not None:
                                 #     print(param.shape, param_.shape)
                         break

@@ -27,6 +27,100 @@ def get_chunk(lst, n, k):
     chunks = split_list(lst, n)
     return chunks[k]
 
+def get_loss(logits, labels, attention_mask, vocab_size):
+    from torch.nn import CrossEntropyLoss
+    labels = labels.masked_fill(~attention_mask, -100)
+    shift_logits = logits[..., :-1, :].contiguous()
+    B, N, C = shift_logits.shape
+    shift_labels = labels[..., 1:].contiguous()
+    # Flatten the tokens
+    loss_fct = CrossEntropyLoss(reduction='none')
+    shift_logits = shift_logits.view(-1, vocab_size)
+    shift_labels = shift_labels.view(-1)
+    # Enable model parallelism
+    shift_labels = shift_labels.to(shift_logits.device)
+    loss = loss_fct(shift_logits, shift_labels)
+    # this loss is [-1, ], we need to reshape it to [B, N]
+    loss = loss.reshape(B, N)
+    # we must know that some positions are 0-loss because of ignore_index, we need to ignore these
+    loss_sum = loss.sum(dim=-1)
+    loss_actual_position = torch.not_equal(loss, 0).sum(dim=-1)
+    loss = loss_sum / loss_actual_position  # [B, ]
+    return loss
+
+
+def generate_func(model, input_ids, **kwargs):
+    if input_ids.dim() == 1:
+        # only one item
+        input_ids = input_ids.unsqueeze(0)
+    max_new_tokens = kwargs.pop("max_new_tokens", args.max_new_tokens)
+    tokenizer = kwargs.pop("tokenizer")
+    sequence_bias = kwargs.pop("sequence_bias", None)
+    with torch.inference_mode():
+        output_ids = model.generate(
+            input_ids,
+            do_sample=True if args.temperature > 0 else False,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            num_beams=args.num_beams,
+            max_new_tokens=max_new_tokens,
+            eos_token_id=tokenizer("<|im_end|>")["input_ids"][-1],
+            sequence_bias=sequence_bias,
+            use_cache=True)
+    return output_ids
+
+def switch_expert(one_model, other_model, input_ids: torch.Tensor, attention_mask: torch.Tensor,
+                  **kwargs):
+    # calculate the loss of input_ids on base_model
+    print(input_ids.shape)
+    with torch.inference_mode():
+        one_model_logits = one_model(input_ids).logits
+        one_model_loss = get_loss(one_model_logits, input_ids, attention_mask, one_model.config.vocab_size)
+        # calculate the loss of input_ids on loaded_model
+        other_model_logits = other_model(input_ids).logits
+        other_model_loss = get_loss(other_model_logits, input_ids, attention_mask, other_model.config.vocab_size)
+
+    # based on the loss scale, partition the inputs to different models
+    mask = one_model_loss < other_model_loss
+    one_model_inputs_id = torch.nonzero(mask).squeeze(-1) # [k, ]
+    other_model_inputs_id = torch.nonzero(~mask).squeeze(-1) # [k, ]
+    # print(one_model_inputs_id, other_model_inputs_id)
+    if one_model_inputs_id.shape[0] == 0:
+        one_model_outputs = []
+    else:
+        one_model_outputs = generate_func(one_model, input_ids[one_model_inputs_id], **kwargs)
+    if other_model_inputs_id.shape[0] == 0:
+        other_model_outputs = []
+    else:
+        other_model_outputs = generate_func(other_model, input_ids[other_model_inputs_id], **kwargs)
+    if one_model_outputs == []:
+        return other_model_outputs 
+    if other_model_outputs == []:
+        return one_model_outputs
+    
+    tokenizer = kwargs.pop("tokenizer")
+    # concat one_model_outputs and other_model_outputs with tokenizer.eos_token_id 
+    max_len = max(one_model_outputs.shape[1], other_model_outputs.shape[1])
+    # print(max_len)
+    one_model_outputs = torch.cat([one_model_outputs, 
+                                   torch.full((one_model_outputs.shape[0], max_len-one_model_outputs.shape[1]), tokenizer.eos_token_id, dtype=torch.long, device=one_model_outputs.device)], dim=1)
+    other_model_outputs = torch.cat([other_model_outputs, 
+                                     torch.full((other_model_outputs.shape[0], max_len-other_model_outputs.shape[1]), tokenizer.eos_token_id, dtype=torch.long, device=other_model_outputs.device)], dim=1)
+    # print(one_model_outputs.shape, other_model_outputs.shape)
+    total_outputs = torch.cat([one_model_outputs, other_model_outputs], dim=0)
+    # merge the outputs
+    results = torch.zeros(total_outputs.shape[0], total_outputs.shape[1]).to(total_outputs)
+    
+    results = torch.scatter_add(results, 0, torch.cat([one_model_inputs_id, other_model_inputs_id], dim=0).unsqueeze(1).expand(-1, total_outputs.shape[1]), total_outputs)
+    # except Exception as e:
+    #     print(e)
+    #     print(one_model_inputs_id)
+    #     print(other_model_inputs_id)
+    #     exit(-1)
+    # if results.shape[0] != input_ids.shape[0]:
+    
+    return results
+    
 
 # Custom dataset class
 class CustomDataset:
@@ -108,7 +202,7 @@ def eval_model(args):
 
     # else:
     if "orth" in model_path:
-        tokenizer, model, context_len, tokenizer_with_prefix_space = load_pretrained_orth_model(model_path, args.model_base, args.lora_name_or_path, use_logit_bias=args.use_logit_bias, only_load=args.only_load)
+        tokenizer, model, context_len, tokenizer_with_prefix_space, other_model = load_pretrained_orth_model(model_path, args.model_base, args.lora_name_or_path, use_logit_bias=args.use_logit_bias, only_load=args.only_load, switch_experts=args.switch_old_expert)
     elif "molora" in model_path:
         tokenizer, model, context_len, tokenizer_with_prefix_space = load_molora_pretrained_model(model_path, args.model_base, model_name, use_logit_bias=args.use_logit_bias, only_load=args.only_load, expert_selection=args.expert_selection)
     else:
@@ -203,19 +297,26 @@ def eval_model(args):
         input_ids = tokenizer(prompts, return_tensors='pt', padding=True).input_ids
         stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style != SeparatorStyle.TWO else conv_templates[args.conv_mode].sep2
         input_ids = input_ids.to(device='cuda', non_blocking=True)
-
-        with torch.inference_mode():
-            output_ids = model.generate(
-                input_ids,
-                do_sample=True if args.temperature > 0 else False,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                num_beams=args.num_beams,
-                max_new_tokens=args.max_new_tokens,
-                eos_token_id=tokenizer("<|im_end|>")["input_ids"][-1],
-                sequence_bias=sequence_bias,
-                use_cache=True)
-
+        attention_mask = input_ids.ne(tokenizer.pad_token_id).to(device='cuda', non_blocking=True)
+        if args.switch_old_expert:
+            assert other_model is not None, "please specify the --switch_old_expert argument"
+            output_ids = switch_expert(model, other_model, input_ids, attention_mask,
+                                       tokenizer=tokenizer, 
+                                       sequence_bias=sequence_bias,
+                                       max_new_tokens=args.max_new_tokens,)
+        else:
+            with torch.inference_mode():
+                output_ids = model.generate(
+                    input_ids,
+                    do_sample=True if args.temperature > 0 else False,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    num_beams=args.num_beams,
+                    max_new_tokens=args.max_new_tokens,
+                    eos_token_id=tokenizer("<|im_end|>")["input_ids"][-1],
+                    sequence_bias=sequence_bias,
+                    use_cache=True)
+        # print(input_ids.shape, output_ids.shape)
         input_token_len = input_ids.shape[1]
         n_diff_input_output = (input_ids != output_ids[:, :input_token_len]).sum().item()
         if n_diff_input_output > 0:
@@ -236,6 +337,7 @@ def eval_model(args):
             cut_length = len(conv.sep2)
             cot_prompts = [(prompt + output + f"{' ' if output.strip().endswith('.') else '. '}{cot_prompt}") for prompt, output in zip(prompts, outputs)]
             input_ids = tokenizer(cot_prompts, return_tensors='pt', padding=True).input_ids.to(device='cuda', non_blocking=True)
+            attention_mask = input_ids.ne(tokenizer.pad_token_id).to(device='cuda', non_blocking=True)
             
             if dataset_name not in ["CMExam_cot", "PLE_TCM_cot", "PLE_Pharmacy_cot"]:
                 if "E." in prompts[0] or "(E)" in prompts[0]:
@@ -246,18 +348,25 @@ def eval_model(args):
             else:
                 cot_sequence_bias = None
                 cot_max_new_tokens = 50
-            
-            with torch.inference_mode():
-                answer_output_ids = model.generate(
-                input_ids,
-                do_sample=True if args.temperature > 0 else False,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                num_beams=args.num_beams,
-                max_new_tokens=cot_max_new_tokens,
-                eos_token_id=tokenizer("<|im_end|>")["input_ids"][-1],
-                sequence_bias=cot_sequence_bias,
-                use_cache=True)
+            if args.switch_old_expert:
+                assert other_model is not None, "please specify the --switch_old_expert argument"
+                
+                answer_output_ids = switch_expert(model, other_model, input_ids, attention_mask,
+                                                  tokenizer=tokenizer,
+                                                  max_new_tokens=cot_max_new_tokens,
+                                                  sequence_bias=cot_sequence_bias)
+            else:
+                with torch.inference_mode():
+                    answer_output_ids = model.generate(
+                    input_ids,
+                    do_sample=True if args.temperature > 0 else False,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    num_beams=args.num_beams,
+                    max_new_tokens=cot_max_new_tokens,
+                    eos_token_id=tokenizer("<|im_end|>")["input_ids"][-1],
+                    sequence_bias=cot_sequence_bias,
+                    use_cache=True)
 
             input_token_len = input_ids.shape[1]
             n_diff_input_output = (input_ids != answer_output_ids[:, :input_token_len]).sum().item()
@@ -302,6 +411,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--expert_selection", choices=["topk", "sampling"], default=None)
     parser.add_argument("--lora_name_or_path", type=str, default=None)
+    parser.add_argument("--switch-old-expert", action="store_true", default=None)
     args = parser.parse_args()
 
     eval_model(args)

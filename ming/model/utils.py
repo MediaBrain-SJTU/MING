@@ -26,8 +26,8 @@ def mark_only_lora_as_trainable(model: nn.Module, bias) -> None:
     for n, p in model.named_parameters():
         if "lora" not in n:
             p.requires_grad = False
-        if "lora" in n and "base" in n:
-            p.requires_grad = False
+        # if "lora" in n and "base" in n:
+        #     p.requires_grad = False
 
     if bias == "none":
         return
