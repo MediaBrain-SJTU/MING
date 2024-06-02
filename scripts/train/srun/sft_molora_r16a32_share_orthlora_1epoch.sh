@@ -53,9 +53,10 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --bf16 True \
     --output_dir ${SAVE_PATH} \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 8 \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 4 \
+    --gradient_accumulation_steps 8 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 100 \

@@ -20,22 +20,22 @@ DATASET="$6"
 LORA_PATH="$7"
 
 DATA_PATH=${TASK_PATH}/medical_test
-mkdir -p ${LOGS_BASE_PATH}/${CKPT}-switch/${DATASET}
+mkdir -p ${LOGS_BASE_PATH}/${CKPT}/${DATASET}
 
 
 echo "Processing ${DATASET}"
-srun -p medai_llm --quotatype=auto --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CKPT}-switch/${DATASET}/infer.log" python -m ming.eval.model_diverse_gen_batch \
+srun -p medai_llm --quotatype=auto --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.log" python -m ming.eval.model_diverse_gen_batch \
     --model-path ${MODEL_PATH} \
     --model-base ${MODEL_BASE} \
     --question-file ${DATA_PATH}/${DATASET}.json \
-    --answers-file ${LOGS_BASE_PATH}/${CKPT}-switch/${DATASET}/infer.jsonl \
+    --answers-file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
     --temperature 0 \
     --conv-mode qwen \
     --resume \
-    --lora_name_or_path ${LORA_PATH} \
-    --switch-old-expert 
+    --lora_name_or_path ${LORA_PATH}  \
+    --batch_size 16 
 
 echo "Evaluating ${DATASET}"
-srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}-switch/${DATASET}/eval.log" python -m ming.eval.eval_em \
-    --input_file ${LOGS_BASE_PATH}/${CKPT}-switch/${DATASET}/infer.jsonl \
-    --output_file ${LOGS_BASE_PATH}/${CKPT}-switch/${DATASET}/wrong.jsonl
+srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/eval.log" python -m ming.eval.eval_em \
+    --input_file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
+    --output_file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/wrong.jsonl

@@ -57,7 +57,8 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
         
         print('Convert to FP16...')
         model.to(torch.float16)
-        tuned_model.to(torch.float16)
+        if tuned_model is not None:
+            tuned_model.to(torch.float16)
 
         tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base, add_prefix_space=True, trust_remote_code=True)
     else:

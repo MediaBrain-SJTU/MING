@@ -411,7 +411,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--expert_selection", choices=["topk", "sampling"], default=None)
     parser.add_argument("--lora_name_or_path", type=str, default=None)
-    parser.add_argument("--switch-old-expert", action="store_true", default=None)
+    parser.add_argument("--switch-old-expert", action="store_true", default=False)
     args = parser.parse_args()
 
     eval_model(args)
