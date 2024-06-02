@@ -1,10 +1,10 @@
-OSS_PATH=/mnt/hwfile/medai/jiangshuyang.p
-TASK_PATH=/mnt/hwfile/medai/jiangshuyang.p/datasets
+OSS_PATH=/mnt/petrelfs/liaoyusheng/oss
+TASK_PATH=/mnt/petrelfs/liaoyusheng/projects/MING/datas
 # TRAINING_DATA=ming-moe-clinical-v2
 TRAINING_DATA=cblue_16k
 
 # MODEL_BASE=/mnt/petrelfs/jiangshuyang.p/models/models--Qwen--Qwen1.5-1.8B-Chat
-MODEL_BASE=/mnt/hwfile/medai/jiangshuyang.p/checkpoints/ming-moe-clinical-v2-qwen1.5-1.8b-molora-r16a32_share_expert_2_mergelora
+MODEL_BASE=${OSS_PATH}/my_models/ming-moe-clinical-v2-qwen1.5-1.8b-molora-r16a32_share_expert_2_fix_taia
 
 CKPT=qwen1.5-1.8b-molora-r16a32_share_expert_2_orthlora_freeze_base
 SAVE_PATH=${OSS_PATH}/checkpoints/${TRAINING_DATA}-${CKPT}
