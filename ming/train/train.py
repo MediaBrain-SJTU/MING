@@ -66,6 +66,8 @@ class ModelArguments:
     use_lbl_loss: Optional[bool] = field(default=False)
     lbl_loss_coeff: Optional[float] = field(default="0.")
 
+    freeze_base_experts: Optional[bool] = field(default=False)
+
 @dataclass
 class DataArguments:
     train_data_path: str = field(default=None,
@@ -99,6 +101,9 @@ class TrainingArguments(transformers.TrainingArguments):
     lora_weight_path: str = ""
     lora_bias: str = "none"
     lora_use_rs: bool = False
+
+    wrap_ffn_lora: bool = True
+    wrap_attn_lora: bool = True
     
     # our method
     lora_name_or_path: str = None
@@ -161,7 +166,7 @@ def get_peft_state_non_lora_maybe_zero_3(named_params, require_grad_only=True):
     return to_return
 
 
-def find_all_linear_names(model, wrap_projector=False, whether_wrap_ffn=True):
+def find_all_linear_names(model, wrap_projector=False, whether_wrap_ffn=True, whether_wrap_attn=True):
     cls = torch.nn.Linear
     lora_module_names = set()
     multimodal_keywords = ['mm_projector', 'vision_tower', 'vision_resampler', 'switch']
@@ -172,6 +177,10 @@ def find_all_linear_names(model, wrap_projector=False, whether_wrap_ffn=True):
             continue
         if not whether_wrap_ffn:
             if isinstance(model.get_submodule(".".join(name.split(".")[:-2])), Qwen2DecoderLayer) and isinstance(module, cls) and "mlp" in name:
+                continue
+        
+        if not whether_wrap_attn:
+            if isinstance(model.get_submodule(".".join(name.split(".")[:-2])), Qwen2DecoderLayer) and isinstance(module, cls) and "self_attn" in name:
                 continue
             
         if isinstance(module, cls):
@@ -526,14 +535,14 @@ def train():
                 output.requires_grad_(True)
             model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
 
-    if training_args.lora_enable or training_args.lora_attn_enable:
+    if training_args.lora_enable:
         from peft import LoraConfig, get_peft_model, PeftModel
         import peft 
         if peft.__version__ == "0.9.0":
             lora_config = LoraConfig(
                 r=training_args.lora_r,
                 lora_alpha=training_args.lora_alpha,
-                target_modules=find_all_linear_names(model, False, whether_wrap_ffn=True if (model_args.num_experts <= 1 and not training_args.lora_attn_enable) else False),
+                target_modules=find_all_linear_names(model, False, whether_wrap_ffn=training_args.wrap_ffn_lora if (model_args.num_experts <= 1) else False, whether_wrap_attn=training_args.wrap_attn_lora),
                 lora_dropout=training_args.lora_dropout,
                 bias=training_args.lora_bias,
                 task_type="CAUSAL_LM",
@@ -545,7 +554,7 @@ def train():
             lora_config = LoraConfig(
                 r=training_args.lora_r,
                 lora_alpha=training_args.lora_alpha,
-                target_modules=find_all_linear_names(model, False, whether_wrap_ffn=True if (model_args.num_experts <= 1 and not training_args.lora_attn_enable) else False),
+                target_modules=find_all_linear_names(model, False, whether_wrap_ffn=training_args.wrap_ffn_lora if (model_args.num_experts <= 1) else False, whether_wrap_attn=training_args.wrap_attn_lora),
                 lora_dropout=training_args.lora_dropout,
                 bias=training_args.lora_bias,
                 task_type="CAUSAL_LM",
@@ -556,9 +565,7 @@ def train():
             if training_args.fp16:
                 model.to(torch.float16)
         rank0_print("Adding LoRA adapters...")
-        if training_args.use_orthogonal:
-            pass
-        else:
+        if len(lora_config.target_modules) != 0:
             model = get_peft_model(model, lora_config)
         
     if model_args.num_experts > 1:
@@ -616,7 +623,7 @@ def train():
 
     model.config.use_cache = True
 
-    if training_args.lora_enable or training_args.lora_attn_enable:
+    if training_args.lora_enable:
         state_dict = get_peft_state_maybe_zero_3(
             model.named_parameters(), training_args.lora_bias
         )

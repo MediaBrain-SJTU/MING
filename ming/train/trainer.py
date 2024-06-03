@@ -270,7 +270,7 @@ class MINGTrainer(Trainer):
                             # param.to(fparam_.dtype)
                             # print(param.shape, fparam_.shape)
                             # cmp_item += 1
-                        orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
+                        orthogonal_loss += torch.abs(torch.mm(param.float(), param_.float().T)).sum() # [r * dim] * [dim * r]
                         # break # once find, we find the layers.x.mlp.{}_proj.base.lora_A and layers.x.mlp.{}_proj.orth.lora_A 
                     
                         # with deepspeed.zero.GatheredParameters(param):

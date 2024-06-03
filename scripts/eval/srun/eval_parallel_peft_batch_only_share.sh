@@ -19,7 +19,7 @@ CKPT="$4" # 使用实际的检查点名称替换CHECKPOINT_NAME
 LOGS_BASE_PATH="$5"
 DATASET="$6"
 
-DATA_PATH=${TASK_PATH}/medical_test
+DATA_PATH=${TASK_PATH}/test
 echo ${LOGS_BASE_PATH}/${CKPT}/only_share/${DATASET}
 mkdir -p ${LOGS_BASE_PATH}/${CKPT}/only_share/${DATASET}
 

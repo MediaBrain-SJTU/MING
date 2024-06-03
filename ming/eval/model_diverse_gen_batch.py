@@ -408,7 +408,7 @@ if __name__ == "__main__":
     parser.add_argument("--logit-score", default=100.0)
     parser.add_argument("--use_logit_bias", action="store_true", default=False)
     parser.add_argument("--only_load", choices=["attn", "ffn", "share", "no_share"], default=None)
-    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--expert_selection", choices=["topk", "sampling"], default=None)
     parser.add_argument("--lora_name_or_path", type=str, default=None)
     parser.add_argument("--switch-old-expert", action="store_true", default=None)

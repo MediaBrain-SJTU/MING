@@ -34,6 +34,12 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
         from peft import PeftModel, PeftConfig
         tokenizer = AutoTokenizer.from_pretrained(model_base, trust_remote_code=True, use_fast=False)
         model = AutoModelForCausalLM.from_pretrained(model_base, trust_remote_code=True, low_cpu_mem_usage=True, **kwargs)
+        from peft import PeftModel
+        print(f"Loading LoRA weights from {model_path}")
+        model = PeftModel.from_pretrained(model, model_path, config=lora_config)
+        print(f"Merging LoRA weights")
+        model = model.merge_and_unload()
+
         print(f"Loading Base and Orthogonal LoRA weights from {model_path}")
         lora_cfg_pretrained = AutoConfig.from_pretrained(model_path)
         lora_config = PeftConfig.from_pretrained(model_path)
@@ -52,19 +58,20 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
             tuned_orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
             tuned_model.load_state_dict(tuned_orth_lora_weights, strict=False)
             tuned_model = merge_and_unload(tuned_model)
+            tuned_model.to(torch.float16)
+
         model.load_state_dict(orth_lora_weights, strict=False)
         model = merge_and_unload(model)
         
         print('Convert to FP16...')
         model.to(torch.float16)
-        tuned_model.to(torch.float16)
 
-        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base, add_prefix_space=True, trust_remote_code=True)
+        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base, trust_remote_code=True)
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, trust_remote_code=True, **kwargs)
 
-        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, add_prefix_space=True, trust_remote_code=True)
+        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
     if hasattr(model.config, "max_sequence_length"):
         context_len = model.config.max_sequence_length

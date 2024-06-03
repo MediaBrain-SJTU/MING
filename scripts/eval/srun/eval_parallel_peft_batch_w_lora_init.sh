@@ -17,6 +17,7 @@ MODEL_PATH="$3"
 CKPT="$4" # 使用实际的检查点名称替换CHECKPOINT_NAME
 LOGS_BASE_PATH="$5"
 DATASET="$6"
+LORA_PATH="$7"
 
 DATA_PATH=${TASK_PATH}/test
 mkdir -p ${LOGS_BASE_PATH}/${CKPT}/${DATASET}
@@ -31,6 +32,7 @@ srun -p medai_llm --quotatype=auto --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CK
     --temperature 0 \
     --conv-mode qwen \
     --resume \
+    --lora_name_or_path ${LORA_PATH}
 
 echo "Evaluating ${DATASET}"
 srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/eval.log" python -m ming.eval.eval_em \

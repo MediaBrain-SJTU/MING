@@ -22,9 +22,11 @@ def rank0_print(*args):
     if local_rank == 0:
         print(*args)
         
-def mark_only_lora_as_trainable(model: nn.Module, bias) -> None:
+def mark_only_lora_as_trainable(model: nn.Module, bias, freeze_base_experts) -> None:
     for n, p in model.named_parameters():
         if "lora" not in n:
+            p.requires_grad = False
+        if freeze_base_experts and "lora" in n and "base" in n:
             p.requires_grad = False
         # if "lora" in n and "base" in n:
         #     p.requires_grad = False
@@ -179,25 +181,14 @@ def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2Decoder
             else:
                 rank0_print(k)
                 exit(-1)
-        # for k in attn_lora_params:
-        #     # find self_attn.k_proj.lora_A.weight 
-        #     if "self_attn" in k and ("lora_A" in k or "lora_B" in k):
-        #         initial_base_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = attn_lora_params[k]
 
-            # else:
-            #     initial_base_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = lora_params[k]
-        # print("Loading Parameters: ", initial_molora_params.keys())
-        # for k, v in initial_base_params.items():
-        #     print(k)
-        # for k, v in model.state_dict().items():
-        #     print(k)
         incompatible_keys = model.load_state_dict(initial_base_params, strict=False)
         # print(incompatible_keys)
         # print(incompatible_keys)
     else:
         print("No initialization for Base!")
 
-    mark_only_lora_as_trainable(model, getattr(lora_config, "bias", "none"))
+    mark_only_lora_as_trainable(model, getattr(lora_config, "bias", "none"), getattr(model_args, "freeze_base_experts", False))
     if inference_mode:
         for n, p in model.named_parameters():
             if "lora" in n:
@@ -236,7 +227,8 @@ def replace_module(parent_module, child_name, new_module, old_module):
 
     if getattr(old_module, "state", None) is not None:
         new_module.state = old_module.state
-        new_module.to(old_module.weight.device)
+
+    new_module.to(old_module.weight.device)
 
     # dispatch to correct device
     for name, module in new_module.named_modules():
