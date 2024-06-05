@@ -238,29 +238,31 @@ class MINGTrainer(Trainer):
         
         ########################### Regularization ##########################
         orthogonal_loss = torch.tensor(0.).to(model.device).to(loss.dtype)
-        cmp_item = 0
-        for name, param in self.model.named_parameters():
-            if "base." in name and "lora_A" in name:
-                # find all params that start with name.split("share_experts")[0]
-                prefix = name.split("base.")[0]
-                for name_, param_ in self.model.named_parameters():
-                    if prefix + "orth" in name_ and "lora_A" in name_:
+        
+        if self.args.use_orthogonal:
+            for name, param in self.model.named_parameters():
+                if "base." in name and "lora_A" in name:
+                    # find all params that start with name.split("share_experts")[0]
+                    prefix = name.split("base.")[0]
+                    for name_, param_ in self.model.named_parameters():
+                        if prefix + "orth" in name_ and "lora_A" in name_:
 
-                        fparam = safe_get_full_fp32_param(param=param)
-                        param = param if fparam is None else fparam
+                            fparam = safe_get_full_fp32_param(param=param)
+                            param = param if fparam is None else fparam
 
-                        fparam_ = safe_get_full_fp32_param(param=param_)
-                        param_ = param_ if fparam_ is None else fparam_
-                        
-                        orthogonal_loss += torch.abs(torch.mm(param.float(), param_.float().T)).sum() # [r * dim] * [dim * r]
-                        break
+                            fparam_ = safe_get_full_fp32_param(param=param_)
+                            param_ = param_ if fparam_ is None else fparam_
+                            
+                            orthogonal_loss += torch.abs(torch.mm(param.float(), param_.float().T)).sum() # [r * dim] * [dim * r]
+                            break
 
-        lamda_1 = self.args.lamda_1
-        logger.info(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
-        print(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
+            lamda_1 = self.args.lamda_1
+            logger.info(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
+            print(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
 
-
-        floss = loss + orthogonal_loss * lamda_1
+            floss = loss + orthogonal_loss * lamda_1
+        else:
+            floss = loss
 
         ######################################################################
 

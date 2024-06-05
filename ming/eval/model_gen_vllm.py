@@ -132,7 +132,7 @@ def eval_model(args):
 
     sequence_bias = None
     def get_tokens_index(word):
-        return tokenizer([word], add_special_tokens=False).input_ids[0][0]
+        return tokenizer([word], add_prefix_space=True, add_special_tokens=False).input_ids[0][0]
 
     task_specific_prompt = ""
     dataset_name = args.question_file.split("/")[-1].split(".")[0]
@@ -176,8 +176,9 @@ def eval_model(args):
         conv.append_message(conv.roles[1], None)
         prompt = conv.get_prompt()
         # input_ids = tokenizer(prompt, return_tensors='pt').input_ids
-        stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style != SeparatorStyle.TWO else conv_templates[args.conv_mode].sep2
-        sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_new_tokens, stop=["<|im_end|>", stop_str])
+        stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style not in [SeparatorStyle.TWO, SeparatorStyle.LLAMA2] else conv_templates[args.conv_mode].sep2
+        # stop_str = conv_templates[args.conv_mode].sep2
+        sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_new_tokens, stop=[tokenizer.eos_token, stop_str])
         outputs = model.generate(prompts=prompt, sampling_params=sampling_params)
         outputs = outputs[0].outputs[0].text.strip()
 
@@ -190,7 +191,7 @@ def eval_model(args):
             conv.append_message(conv.roles[0], cur_prompt)
             add_char = " " if outputs.endswith(".") else ". "
             conv.append_message(conv.roles[1], outputs + f"{add_char}{answer_prompt}")
-            cut_length = len(conv.sep2) + 1
+            cut_length = len(conv.sep2)
             cot_prompt = conv.get_prompt()[:-cut_length]
             # input_token_len = input_ids.shape[1]
             
@@ -211,7 +212,7 @@ def eval_model(args):
             else:
                 logits_processor_list = None
 
-            sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=cot_max_new_tokens, stop=["<|im_end|>", stop_str], logits_processors=logits_processor_list)
+            sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=cot_max_new_tokens, stop=[tokenizer.eos_token, stop_str], logits_processors=logits_processor_list)
             answer_outputs = model.generate(prompts=cot_prompt, sampling_params=sampling_params)
             answer_outputs = answer_outputs[0].outputs[0].text.strip()
             outputs = f"{outputs}{add_char}{answer_prompt}{answer_outputs}"

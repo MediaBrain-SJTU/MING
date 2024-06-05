@@ -269,30 +269,27 @@ def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2Decode
         
         del target
     
-    # print(lora_name_or_path)
+    print(lora_name_or_path)
     loading_params = {}
     if lora_name_or_path is not None and os.path.exists(lora_name_or_path):
-        if lora_loading_type in ["all"]:
+        if lora_loading_type == "all":
             print(f"Initializing attn LoRA from {os.path.join(lora_name_or_path, 'adapter_model.safetensors')}")
             # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), map_location='cpu')
             with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
                 for k in f.keys():
                     loading_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = f.get_tensor(k)
 
-        if lora_loading_type == "share":
-            print(f"Initializing MoLoRA from the share experts of {os.path.join(lora_name_or_path, 'adapter_model.safetensors')}")
-                # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
-                # non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
-                # if any(k.startswith('model.model.') for k in non_lora_trainables):
-                #     non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
-
-        # print(incompatible_keys)
+            print(f"Initializing MoLoRA from the share experts of {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
+            non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
+            non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
+            if any(k.startswith('model.model.') for k in non_lora_trainables):
+                non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
     else:
         print("No initialization for MoLoRA & LoRA!")
     
     incompatible_keys = model.load_state_dict(loading_params, strict=False)
-    # if len(incompatible_keys["unexpected_keys"]) != 0:
-    #     print(incompatible_keys)
+    if len(incompatible_keys.unexpected_keys) != 0:
+        print(incompatible_keys)
 
     mark_only_lora_as_trainable(model, getattr(lora_config, "bias", "none"))
     if inference_mode:

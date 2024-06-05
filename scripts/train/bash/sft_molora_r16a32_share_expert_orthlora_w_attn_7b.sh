@@ -1,7 +1,7 @@
 OSS_PATH=/mnt/petrelfs/liaoyusheng/oss
 TASK_PATH=/mnt/petrelfs/liaoyusheng/projects/MING/datas
-TRAINING_DATA=cblue_16k
-# TRAINING_DATA=clinical_16k
+# TRAINING_DATA=cblue_16k
+TRAINING_DATA=clinical_16k
 # TRAINING_DATA=ming-moe-clinical-2stage_30k
 MODEL_BASE=/mnt/petrelfs/liaoyusheng/oss/download_models/Qwen1.5-7B-Chat
 

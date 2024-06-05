@@ -26,7 +26,7 @@ srun -p medai_llm --quotatype=spot --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CK
     --question-file ${DATA_PATH}/${DATASET}.json \
     --answers-file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
     --temperature 0 \
-    --conv-mode qwen \
+    --conv-mode llama3 \
     --resume 
 
 echo "Evaluating ${DATASET}"

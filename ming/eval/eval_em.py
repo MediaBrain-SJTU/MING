@@ -568,7 +568,7 @@ if __name__ == "__main__":
         print(score)
     elif dataset_name in ["CBLUE"]:
         cblue_score(args, questions)
-    elif dataset_name in ["CMB-Clin-sub0", "CMB-Clin", "clinical-test-200"]:
+    elif dataset_name in ["CMB-Clin-sub0", "CMB-Clin", "clinical-test-200", "clinical-test-200-v2", "image_analysis_new"]:
         cmb_score(args, questions)
         # print(f"Acc in {dataset_name}: {avg_acc}")
     else:
