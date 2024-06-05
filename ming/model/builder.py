@@ -210,6 +210,7 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
         if only_load != "attn" and only_load != "share":
             print(f"Loading MoLoRA weights from {model_path}")
             if only_load == "no_share":
+                print(f"Only Loading MoLoRA exclude share expert weights from {model_path}")
                 lora_cfg_pretrained.share_expert = False
                 
             model = get_mixoflora_model(model, model_args=lora_cfg_pretrained, lora_config=lora_config, inference_mode=True)
@@ -219,6 +220,7 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
                 if any(k.startswith('model.model.') for k in non_lora_trainables):
                     non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
             incompatible_keys = model.load_state_dict(non_lora_trainables, strict=False)
+            print(incompatible_keys)
             
         print('Convert to FP16...')
         model.to(torch.float16)
@@ -235,8 +237,8 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
     
     if model_base is not None:
         # lora case
-        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base , add_prefix_space=True, trust_remote_code=True)
+        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base, trust_remote_code=True)
     else:
-        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, add_prefix_space=True, trust_remote_code=True)
+        tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
     return tokenizer, model, context_len, tokenizer_with_prefix_space

@@ -98,7 +98,6 @@ class Conversation:
             round_add_n = 1
             ret = self.system + self.sep
 
-
             for i, (role, message) in enumerate(self.messages):
                 if i % 2 == 0:
                     ret += f"[Round {i//2 + round_add_n}]{self.sep}"
@@ -438,7 +437,7 @@ If a question does not make any sense, or is not factually coherent, explain why
     offset=0,
     sep_style=SeparatorStyle.LLAMA_3,
     sep="<|end_of_text|>",
-    sep2="<|end_of_text|>",
+    sep2="<|eot_id|>",
     stop_str="<|eot_id|>",
     stop_token_ids=[128001, 128009],
 )

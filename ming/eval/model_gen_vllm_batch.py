@@ -41,31 +41,41 @@ class LogitBiasLogitsProcessor(LogitsProcessor):
 
 # Custom dataset class
 class CustomDataset:
-    def __init__(self, questions):
+    def __init__(self, questions, batch_size, conv_mode, task_specific_prompt):
         self.questions = questions
-        # self.tokenizer = tokenizer
-        # self.model_config = model_config
-        self.index = 0
+        self.batch_size = batch_size
+        self.size = len(questions)
+        self.conv = conv_templates[conv_mode].copy()
+        self.task_specific_prompt = task_specific_prompt
 
     def __getitem__(self, index):
-        line = self.questions[index]
-        
+        bz = self.batch_size
+
         # return question, ansewr, additional info
-        question = line['conversations'][0]['value']
-        answer = line['conversations'][1]['value'] if len(line['conversations']) > 1 else None
+        questions = []
+        prompts = []
+        answers = []
+        additional_infos = []
+        for i in range(index*bz, (index+1)*bz):
+            if i < self.size:
+                conv = self.conv.copy()
 
-        if 'eval' in line:
-            additional_info = line['eval']
-        else:
-            additional_info = None
+                line = self.questions[i]
+                question = line['conversations'][0]['value']
+                question = question if question.endswith(self.task_specific_prompt) else question + self.task_specific_prompt
 
-        
+                questions.append(question)
+                conv.append_message(conv.roles[0], question)
+                conv.append_message(conv.roles[1], None)
+                prompts.append(conv.get_prompt())
+                answers.append(line['conversations'][1]['value'] if len(line['conversations']) > 1 else None)
+                additional_infos.append(line['eval'] if 'eval' in line else None)
+
         # input_ids = tokenizer_image_token(prompt, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt')
-
-        return question, answer, additional_info
+        return questions, prompts, answers, additional_infos
 
     def __len__(self):
-        return len(self.questions)
+        return len(self.questions) // self.batch_size + 1
 
     def __iter__(self):
         # 返回迭代器对象本身
@@ -90,10 +100,6 @@ def create_data_loader(questions, tokenizer, model_config, batch_size=1, num_wor
     return data_loader
 
 def convert_to_json(questions):
-    # questions is a pandas dataframe, which is to be converted to a list object
-    # each element in the list is a dictionary
-    # the column name of questions is the key of the dictionary
-    # the value of the dictionary is the value of the corresponding column
     questions = questions.to_dict(orient='records')
     return questions
 
@@ -104,7 +110,7 @@ def eval_model(args):
     model_name = get_model_name_from_path(model_path)
 
     tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
-    model = LLM(model=args.model_path)
+    model = LLM(model=args.model_path, trust_remote_code=True)
 
     if args.question_file.endswith(".csv"):
         questions = pd.read_csv(args.question_file)
@@ -132,17 +138,11 @@ def eval_model(args):
 
     sequence_bias = None
     def get_tokens_index(word):
-        return tokenizer([word], add_prefix_space=True, add_special_tokens=False).input_ids[0][0]
+        return tokenizer([word], add_special_tokens=False).input_ids[0][0]
 
     task_specific_prompt = ""
     dataset_name = args.question_file.split("/")[-1].split(".")[0]
-    if dataset_name == 'apps':
-        task_specific_prompt = "\n\nPlease use python language to answer this problem. You should process stdin and stdout with input() and print():"
-    elif dataset_name == 'bbh':
-        task_specific_prompt = "\n\nPlease format the final answer at the end of the response as: The answer is {answer}. Let's think step by step."
-    elif dataset_name == 'gsm8k':
-        task_specific_prompt = "\n\nPlease format the final answer at the end of the response as: The answer is {answer}."
-    elif dataset_name == 'mmedbench_en_cot':
+    if dataset_name == 'mmedbench_en_cot':
         task_specific_prompt = "\n\nPlease format the final answer at the end of the response as: The answer is {answer}."
     elif dataset_name in ['mmedbench_zh_cot', "PLE_Pharmacy_cot", "PLE_TCM_cot"]:
         task_specific_prompt = "\n\n请在回答的最后用以下格式回答：答案为{answer}。"
@@ -164,40 +164,38 @@ def eval_model(args):
     elif dataset_name == "humaneval":
         task_specific_prompt = "\n\nPlease complete the code within the code block ```python```."
         # task_specific_prompt = "\n\nPlease answer with option letter directly, do not output other infomation."
-    dataset = CustomDataset(questions)
+    dataset = CustomDataset(questions, batch_size=args.batch_size, conv_mode=args.conv_mode, task_specific_prompt=task_specific_prompt)
     for idx in trange(len(dataset)):
-        line = dataset[idx]
-        question, answer, additional_info = line
-        question = question + task_specific_prompt
-        cur_prompt = question 
+        questions, prompts, answers, additional_infos = dataset[idx]
+        if len(questions) == 0:
+            break
+        
+        # stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style != SeparatorStyle.TWO else conv_templates[args.conv_mode].sep2
+        # stop_str = conv_templates[args.conv_mode].sep2 if conv_templates[args.conv_mode].sep_style == SeparatorStyle.TWO else conv_templates[args.conv_mode].sep
+        if args.conv_mode == 'llama3':
+                stop_str = [
+                    tokenizer.eos_token,
+                    "<|eot_id|>"
+                ]
+        else:
+            stop_str = [tokenizer.eos_token]
 
-        conv = conv_templates[args.conv_mode].copy()
-        conv.append_message(conv.roles[0], cur_prompt)
-        conv.append_message(conv.roles[1], None)
-        prompt = conv.get_prompt()
-        # input_ids = tokenizer(prompt, return_tensors='pt').input_ids
-        # stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style not in [SeparatorStyle.TWO, SeparatorStyle.LLAMA2] else conv_templates[args.conv_mode].sep2
-        # stop_str = conv_templates[args.conv_mode].sep2
-        stop_str = conv_templates[args.conv_mode].sep2 if conv_templates[args.conv_mode].sep_style == SeparatorStyle.TWO else conv_templates[args.conv_mode].sep
-        sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_new_tokens, stop=[tokenizer.eos_token, stop_str])
-        outputs = model.generate(prompts=prompt, sampling_params=sampling_params)
-        outputs = outputs[0].outputs[0].text.strip()
+        sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_new_tokens, stop=stop_str)
+        outputs = model.generate(prompts=prompts, sampling_params=sampling_params)
+        outputs = [output.outputs[0].text.strip() for output in outputs]
+        # outputs = outputs[0].outputs[0].text.strip()
 
         if "cot" in dataset_name:
-            if "The answer is" in cur_prompt:
+            if "The answer is" in prompts[0]:
                 answer_prompt = "\nThe answer is "
-            elif "答案为" in cur_prompt:
+            elif "答案为" in prompts[0]:
                 answer_prompt = "\n答案为"
             
-            conv.append_message(conv.roles[0], cur_prompt)
-            add_char = " " if outputs.endswith(".") else ". "
-            conv.append_message(conv.roles[1], outputs + f"{add_char}{answer_prompt}")
-            cut_length = len(conv.sep2)
-            cot_prompt = conv.get_prompt()[:-cut_length]
+            cot_prompts = [(prompt + output + f"{' ' if output.strip().endswith('.') else '. '}{answer_prompt}") for prompt, output in zip(prompts, outputs)]
             # input_token_len = input_ids.shape[1]
             
             if dataset_name not in ["CMExam_cot", "PLE_TCM_cot", "PLE_Pharmacy_cot"]:
-                if "E." in cur_prompt or "(E)" in cur_prompt:
+                if "E." in prompts[0] or "(E)" in prompts[0]:
                     cot_sequence_bias = {get_tokens_index(x): args.logit_score for x in ["A", "B", "C", "D", "E"]}
                 else:
                     cot_sequence_bias = {get_tokens_index(x): args.logit_score for x in ["A", "B", "C", "D"]}
@@ -213,18 +211,18 @@ def eval_model(args):
             else:
                 logits_processor_list = None
 
-            sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=cot_max_new_tokens, stop=[tokenizer.eos_token, stop_str], logits_processors=logits_processor_list)
-            answer_outputs = model.generate(prompts=cot_prompt, sampling_params=sampling_params)
-            answer_outputs = answer_outputs[0].outputs[0].text.strip()
-            outputs = f"{outputs}{add_char}{answer_prompt}{answer_outputs}"
+            sampling_params = SamplingParams(temperature=args.temperature, top_p=args.top_p, max_tokens=cot_max_new_tokens, stop=stop_str, logits_processors=logits_processor_list)
+            answer_outputs = model.generate(prompts=cot_prompts, sampling_params=sampling_params)
+            answer_outputs = [output.outputs[0].text.strip() for output in answer_outputs]
+            outputs = [f"{output}{' ' if output.strip().endswith('.') else '. '}{answer_prompt}{answer_output}" for output, answer_output in zip(outputs, answer_outputs)]
 
-        # ans_id = shortuuid.uuid()
-        ans_file.write(json.dumps({"prompt": cur_prompt,
-                                   "text": outputs,
-                                   "solution": answer,
-                                   "additional_info": additional_info,
-                                   "model_id": model_name,
-                                   "metadata": {}}, ensure_ascii=False) + "\n",)
+        for question, output, answer, additional_info in zip(questions, outputs, answers, additional_infos):
+            ans_file.write(json.dumps({"prompt": question,
+                                    "text": output,
+                                    "solution": answer,
+                                    "additional_info": additional_info,
+                                    "model_id": model_name,
+                                    "metadata": {}}, ensure_ascii=False) + "\n",)
         ans_file.flush()
         
     ans_file.close()
@@ -246,6 +244,7 @@ if __name__ == "__main__":
     parser.add_argument("--logit-score", default=100.0)
     parser.add_argument("--use_logit_bias", action="store_true", default=True)
     parser.add_argument("--only_load", choices=["attn", "ffn"], default=None)
+    parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--expert_selection", choices=["topk", "sampling"], default=None)
     args = parser.parse_args()
 

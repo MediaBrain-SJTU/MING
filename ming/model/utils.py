@@ -28,7 +28,7 @@ def mark_only_lora_as_trainable(model: nn.Module, bias, freeze_base_experts=Fals
         print("Freeze Share Expert!")
 
     for n, p in model.named_parameters():
-        if "lora" not in n:
+        if "lora" not in n and "switch" not in n:
             p.requires_grad = False
         if freeze_base_experts and "lora" in n and ".base." in n:
             p.requires_grad = False
@@ -279,15 +279,17 @@ def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2Decode
                 for k in f.keys():
                     loading_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = f.get_tensor(k)
 
-            print(f"Initializing MoLoRA from the share experts of {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
+            print(f"Initializing MoLoRA from all experts of {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
             non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
-            non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
-            if any(k.startswith('model.model.') for k in non_lora_trainables):
-                non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
+            # non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
+            # if any(k.startswith('model.model.') for k in non_lora_trainables):
+            #     non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
+            loading_params.update(non_lora_trainables)
     else:
         print("No initialization for MoLoRA & LoRA!")
     
     incompatible_keys = model.load_state_dict(loading_params, strict=False)
+    print(incompatible_keys)
     if len(incompatible_keys.unexpected_keys) != 0:
         print(incompatible_keys)
 
