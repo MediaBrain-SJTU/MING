@@ -599,9 +599,9 @@ def train():
                                               data_args=data_args,
                                               inference_path=training_args.inference_path)
     # print(model)
-    for n, p in model.named_parameters():
-        if p.requires_grad:
-            rank0_print(n)
+    # for n, p in model.named_parameters():
+    #     if p.requires_grad:
+    #         rank0_print(n)
 
     trainer = MINGTrainer(model=model,
                     tokenizer=tokenizer,

@@ -24,5 +24,10 @@ import os
 # print(a_outputs)
 # print("*" * 100)
 # print(b_outputs)
-x = torch.tensor([True, False, False])
-print(torch.nonzero(x).squeeze(-1))
+template = """你是一个精通医学知识的专家。以下是一个关于医学知识的问题，请一步一步地思考这个问题，并在最后用"答案为{{answer_idx}}"给出你的答案。
+
+Question: {question}
+"""
+
+prompt = template.format(question="基础代谢率低于正常范围的疾患是（　　）。\nA. 白血病\nB. 垂体性肥胖症\nC. 中暑\nD. 糖尿病\n\n请在回答的最后用以下格式回答：答案为{answer}。")
+print(prompt)

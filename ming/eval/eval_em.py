@@ -396,7 +396,7 @@ def mmedbench_zh_cot_acc(line):
     else:
         pred = pred[0]
     
-    answer = line['additional_info']['answer_idx']
+    answer = line['additional_info']['answer']
 
     return 1 if f"{answer}" in pred else 0 
 
@@ -535,7 +535,8 @@ METRIC_FUNC_MAPPING = {
     "CMB_val_cot": multiplechoice_acc,
     "mmlu_cot": multiplechoice_en_acc,
     "MedQA_cot": multiplechoice_en_acc,
-    "MedMCQA_cot": multiplechoice_en_acc
+    "MedMCQA_cot": multiplechoice_en_acc,
+    "medqa_mainland_cot": multiplechoice_acc
 }
 
 if __name__ == "__main__":

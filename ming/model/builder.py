@@ -71,7 +71,10 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
         context_len = model.config.max_sequence_length
     else:
         context_len = 2048
-        
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.unk_token_id if tokenizer.unk_token_id is not None else tokenizer.eos_token_id
+    if tokenizer_with_prefix_space.pad_token_id is None:
+        tokenizer_with_prefix_space.pad_token_id = tokenizer_with_prefix_space.unk_token_id if tokenizer_with_prefix_space.unk_token_id is not None else tokenizer_with_prefix_space.eos_token_id
     return tokenizer, model, context_len, tokenizer_with_prefix_space, tuned_model
 
 
@@ -124,7 +127,10 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
         context_len = model.config.max_sequence_length
     else:
         context_len = 2048
-        
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.unk_token_id if tokenizer.unk_token_id is not None else tokenizer.eos_token_id
+    if tokenizer_with_prefix_space.pad_token_id is None:
+        tokenizer_with_prefix_space.pad_token_id = tokenizer_with_prefix_space.unk_token_id if tokenizer_with_prefix_space.unk_token_id is not None else tokenizer_with_prefix_space.eos_token_id
     return tokenizer, model, context_len, tokenizer_with_prefix_space
 
 
@@ -233,5 +239,8 @@ def load_molora_pretrained_model(model_path, model_base, model_name, load_8bit=F
         tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_base , add_prefix_space=True, trust_remote_code=True)
     else:
         tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(model_path, add_prefix_space=True, trust_remote_code=True)
-
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.unk_token_id if tokenizer.unk_token_id is not None else tokenizer.eos_token_id
+    if tokenizer_with_prefix_space.pad_token_id is None:
+        tokenizer_with_prefix_space.pad_token_id = tokenizer_with_prefix_space.unk_token_id if tokenizer_with_prefix_space.unk_token_id is not None else tokenizer_with_prefix_space.eos_token_id
     return tokenizer, model, context_len, tokenizer_with_prefix_space

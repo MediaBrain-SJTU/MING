@@ -32,8 +32,8 @@ srun -p medai_llm --quotatype=auto --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CK
     --temperature 0 \
     --conv-mode qwen \
     --resume \
-    --lora_name_or_path ${LORA_PATH} \
-    --batch_size 16
+    --lora_name_or_path ${LORA_PATH}  \
+    --batch_size 8 
 
 echo "Evaluating ${DATASET}"
 srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/eval.log" python -m ming.eval.eval_em \

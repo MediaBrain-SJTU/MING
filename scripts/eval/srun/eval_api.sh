@@ -3,7 +3,6 @@
 #SBATCH --partition=medai_llm
 #SBATCH -N1
 #SBATCH --quotatype=auto
-#SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --ntasks-per-node=1    
 #SBATCH --mem-per-cpu=8G  
@@ -12,28 +11,25 @@
 
 
 TASK_PATH="$1"
-MODEL_BASE="$2"
-MODEL_PATH="$3"
-CKPT="$4" # 使用实际的检查点名称替换CHECKPOINT_NAME
-LOGS_BASE_PATH="$5"
-DATASET="$6"
-LORA_PATH="$7"
+CKPT="$2" # 使用实际的检查点名称替换CHECKPOINT_NAME
+LOGS_BASE_PATH="$3"
+DATASET="$4"
 
-DATA_PATH=${TASK_PATH}/medical_test
+DATA_PATH=${TASK_PATH}/test
 mkdir -p ${LOGS_BASE_PATH}/${CKPT}/${DATASET}
 
+if [[ $CKPT == *"chatgpt"* ]]; then
+    api_name=chatgpt
+fi 
 
+echo "Conv mode: ${conv_mode}"
 echo "Processing ${DATASET}"
-srun -p medai_llm --quotatype=auto --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.log" python -m ming.eval.model_diverse_gen_batch \
-    --model-path ${MODEL_PATH} \
-    --model-base ${MODEL_BASE} \
+srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.log" python -m ming.eval.model_diverse_gen_batch_api \
     --question-file ${DATA_PATH}/${DATASET}.json \
     --answers-file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
     --temperature 0 \
-    --conv-mode qwen \
-    --resume \
-    --lora_name_or_path ${LORA_PATH}  \
-    --batch_size 16 
+    --api-name $api_name \
+    --resume 
 
 echo "Evaluating ${DATASET}"
 srun -p medai_llm --quotatype=auto --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/eval.log" python -m ming.eval.eval_em \
