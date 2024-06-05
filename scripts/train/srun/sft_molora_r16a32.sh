@@ -9,6 +9,7 @@
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
 ###SBATCH --kill-on-bad-exit=1
+bash ~/add_oss.sh
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)

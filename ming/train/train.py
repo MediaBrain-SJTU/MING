@@ -67,6 +67,7 @@ class ModelArguments:
     lbl_loss_coeff: Optional[float] = field(default="0.")
 
     freeze_base_experts: Optional[bool] = field(default=False)
+    orth_attn_lora: Optional[bool] = field(default=False)
 
 @dataclass
 class DataArguments:
@@ -107,6 +108,8 @@ class TrainingArguments(transformers.TrainingArguments):
     
     # our method
     lora_name_or_path: str = None
+    lora_loading_type: Optional[str] = field(default="all")
+
     inference_path: Optional[int] = field(default=1)
     soft_select: Optional[bool] = field(default=False)
     
@@ -499,6 +502,7 @@ def train():
     config.router_loss_mode = model_args.router_loss_mode
     config.use_lbl_loss = model_args.use_lbl_loss
     config.lbl_loss_coeff = model_args.lbl_loss_coeff
+    config.orth_attn_lora = model_args.orth_attn_lora
     
     if model_args.num_experts > 1:
         config.num_experts = model_args.num_experts
@@ -565,14 +569,17 @@ def train():
             if training_args.fp16:
                 model.to(torch.float16)
         rank0_print("Adding LoRA adapters...")
-        if len(lora_config.target_modules) != 0:
+        # if len(lora_config.target_modules) != 0:
+        if training_args.use_orthogonal:
+            pass
+        else:
             model = get_peft_model(model, lora_config)
         
     if model_args.num_experts > 1:
         # get mix of lora model
         # if model_args.share_expert:
         #     warnings.warn("Not support expert sharing yet; back to non-sharing mode")
-        model = get_mixoflora_model(model, model_args, lora_config=lora_config, lora_name_or_path=training_args.lora_name_or_path)
+        model = get_mixoflora_model(model, model_args, lora_config=lora_config, lora_name_or_path=training_args.lora_name_or_path, lora_loading_type=training_args.lora_loading_type)
         rank0_print(model.config)
         rank0_print(model)
         training_args.molora = True 

@@ -4,17 +4,18 @@ domain="CBLUE"
 
 NUM_CHUNK=4
 
-TRAINING_DATA=cblue_16k
-# TRAINING_DATA=ming-moe-clinical-2stage_30k
-CKPT=qwen1.5-1.8b-molora-r16a32_share_expert_2_orthlora_freeze_base_2epoch
+# TRAINING_DATA=cblue_16k
+TRAINING_DATA=ming-moe-clinical-2stage_30k
+CKPT=qwen1.5-1.8b-molora-r16a32_share_expert_2_orthlora_freeze_base_w_attn_2epoch_lambda0001
 LOGS_BASE_PATH=logs/${TRAINING_DATA}
 MODEL_PATH=/mnt/petrelfs/liaoyusheng/oss/checkpoints/${TRAINING_DATA}-${CKPT}
-MODEL_BASE=/mnt/petrelfs/liaoyusheng/oss/my_models/ming-moe-clinical-v2-qwen1.5-1.8b-molora-r16a32_share_expert_2_fix_taia
+MODEL_BASE=${OSS_PATH}/download_models/Qwen1.5-1.8B-Chat
+# MODEL_BASE=/mnt/petrelfs/liaoyusheng/oss/my_models/ming-moe-clinical-v2-qwen1.5-7b-molora-r16a32_share_expert_2_fix_taia
 LORA_PATH=/mnt/petrelfs/liaoyusheng/oss/checkpoints/ming-moe-clinical-v2-qwen1.5-1.8b-molora-r16a32_share_expert_2_fix
 
-# for ((CHUNK_ID=0; CHUNK_ID<${NUM_CHUNK}; CHUNK_ID++)); do
-#   sbatch ./scripts/eval/srun/eval_parallel_peft_batch_chunk_w_lora_init.sh $TASK_PATH $MODEL_BASE $MODEL_PATH $CKPT $LOGS_BASE_PATH $domain ${LORA_PATH} ${NUM_CHUNK} ${CHUNK_ID} & sleep 1
-# done
+for ((CHUNK_ID=0; CHUNK_ID<${NUM_CHUNK}; CHUNK_ID++)); do
+  sbatch ./scripts/eval/srun/eval_parallel_peft_batch_chunk_w_lora_init.sh $TASK_PATH $MODEL_BASE $MODEL_PATH $CKPT $LOGS_BASE_PATH $domain ${LORA_PATH} ${NUM_CHUNK} ${CHUNK_ID} & sleep 1
+done
 
 wait
 

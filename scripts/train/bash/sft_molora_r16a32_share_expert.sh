@@ -1,10 +1,10 @@
-OSS_PATH=/mnt/petrelfs/liaoyusheng/oss
+OSS_PATH=/mnt/hwfile/medai/liaoyusheng
 TASK_PATH=./datas/
 TRAINING_DATA=ming-moe-clinical-v2
 
-MODEL_BASE=${OSS_PATH}/download_models/Qwen1.5-1.8B-Chat
+MODEL_BASE=/mnt/hwfile/medai/LLMModels/Model/Qwen1.5-14B-Chat
 
-CKPT=qwen1.5-b-molora-r16a32_share_expert_2_fix
+CKPT=qwen1.5-14b-molora-r16a32_share_expert_2_fix
 SAVE_PATH=${OSS_PATH}/checkpoints/${TRAINING_DATA}-${CKPT}
 LOGS_BASE_PATH=logs/${TRAINING_DATA}
 

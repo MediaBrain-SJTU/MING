@@ -9,6 +9,7 @@
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
 ###SBATCH --kill-on-bad-exit=1
+bash ~/add_oss.sh
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)
@@ -54,7 +55,7 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --val_data_path ${DATA_PATH}/test.json \
     --bf16 True \
     --output_dir ${SAVE_PATH} \
-    --num_train_epochs 1 \
+    --num_train_epochs 2 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 4 \

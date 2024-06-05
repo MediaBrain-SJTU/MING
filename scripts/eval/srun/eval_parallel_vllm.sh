@@ -20,14 +20,14 @@ DATASET="$5"
 DATA_PATH=${TASK_PATH}/test
 mkdir -p ${LOGS_BASE_PATH}/${CKPT}/${DATASET}
 
-echo "Processing ${DATASET}"
-srun -p medai_llm --quotatype=spot --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.log" python -m ming.eval.model_gen_vllm \
-    --model-path ${MODEL_BASE} \
-    --question-file ${DATA_PATH}/${DATASET}.json \
-    --answers-file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
-    --temperature 0 \
-    --conv-mode qwen \
-    --resume 
+# echo "Processing ${DATASET}"
+# srun -p medai_llm --quotatype=spot --gres=gpu:1 --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.log" python -m ming.eval.model_gen_vllm \
+#     --model-path ${MODEL_BASE} \
+#     --question-file ${DATA_PATH}/${DATASET}.json \
+#     --answers-file ${LOGS_BASE_PATH}/${CKPT}/${DATASET}/infer.jsonl \
+#     --temperature 0 \
+#     --conv-mode qwen \
+#     --resume 
 
 echo "Evaluating ${DATASET}"
 srun -p medai_llm --quotatype=spot --output="${LOGS_BASE_PATH}/${CKPT}/${DATASET}/eval.log" python -m ming.eval.eval_em \

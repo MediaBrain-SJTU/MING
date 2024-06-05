@@ -22,11 +22,15 @@ def rank0_print(*args):
     if local_rank == 0:
         print(*args)
         
-def mark_only_lora_as_trainable(model: nn.Module, bias, freeze_base_experts) -> None:
+def mark_only_lora_as_trainable(model: nn.Module, bias, freeze_base_experts=False) -> None:
+
+    if freeze_base_experts:
+        print("Freeze Share Expert!")
+
     for n, p in model.named_parameters():
         if "lora" not in n:
             p.requires_grad = False
-        if freeze_base_experts and "lora" in n and "base" in n:
+        if freeze_base_experts and "lora" in n and ".base." in n:
             p.requires_grad = False
         # if "lora" in n and "base" in n:
         #     p.requires_grad = False
@@ -88,9 +92,9 @@ def create_mixoflora_module(lora_config, target, model_args, add_bias=True):
                               bias=add_bias)
     return new_module
 
-def create_orthlora_module(lora_config, target, model_args, add_bias=True):
+def create_orthlora_module(lora_config, target, model_args, attn_orth=False, add_bias=True):
     in_features, out_features = target.in_features, target.out_features
-    new_module = OrthLoRALinear(in_features, out_features, r=lora_config.r,
+    new_module = OrthLoRALinear(in_features, out_features, r=lora_config.r if not attn_orth else lora_config.r//2,
                                 lora_alpha=lora_config.lora_alpha,
                                 lora_dropout=lora_config.lora_dropout,
                                 use_rslora=lora_config.use_rslora,
@@ -99,29 +103,19 @@ def create_orthlora_module(lora_config, target, model_args, add_bias=True):
 
 def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2DecoderLayer, lora_name_or_path=None, inference_mode=False):
     
-    # first merge lora attention weights from the lora_name_or_path/adapter_model.safetensors
-    # attn_lora_params = {}
-    # rank0_print(lora_name_or_path)
-    # with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
-    #     for k in f.keys():
-    #         attn_lora_params[k] = f.get_tensor(k)
-    # initial_base_params = {}
-    # for k in attn_lora_params:
-    #     # find self_attn.k_proj.lora_A.weight 
-    #     if "self_attn" in k and ("lora_A" in k or "lora_B" in k):
-    #         initial_base_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = attn_lora_params[k]
-    # incompatible_keys = model.load_state_dict(initial_base_params, strict=False)
-    # rank0_print(incompatible_keys)
-    # model.merge_and_unload()
-
-    # find linear modules with "switch" in their attributes
     key_list = [key for key, _ in model.named_modules()]
     target_module_names = set()
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Linear):
-            if isinstance(model.get_submodule(".".join(name.split(".")[:-2])), decoder_type) and "mlp" in name:
-                names = name.split(".")
-                target_module_names.add(names[0] if len(names) == 1 else names[-1])
+            if isinstance(model.get_submodule(".".join(name.split(".")[:-2])), decoder_type):
+                if not model_args.orth_attn_lora:  
+                    if "mlp" in name:
+                        names = name.split(".")
+                        target_module_names.add(names[0] if len(names) == 1 else names[-1])
+                else:
+                    names = name.split(".")
+                    target_module_names.add(names[0] if len(names) == 1 else names[-1])
+
     target_module_names = list(target_module_names)
     
     for key in key_list:
@@ -138,7 +132,8 @@ def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2Decoder
         else:
             add_bias = False
         # new_module = create_mixoflora_module(lora_config, target, num_experts, num_experts_per_token, enable_router_loss, True if expert_selection == "sampling" else False, use_lbl_loss, add_bias=add_bias)
-        new_module = create_orthlora_module(lora_config, target, model_args, add_bias=add_bias)
+        #
+        new_module = create_orthlora_module(lora_config, target, model_args, attn_orth=True if "mlp" not in key else False, add_bias=add_bias)
         setattr(parent, target_name, new_module)
         new_module.weight = target.weight 
         if hasattr(target, "bias"):
@@ -154,26 +149,35 @@ def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2Decoder
         del target
     
     if lora_name_or_path is not None and os.path.exists(lora_name_or_path):
-        print(f"Initializing base LoRA weights from share_experts in {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
-        # shared_ffn_lora_params = {}
-        # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), map_location='cpu')
-        # with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
-        #     for k in f.keys():
-        #         lora_params[k] = f.get_tensor(k)
+        shared_attn_lora_params = {}
+        if model_args.orth_attn_lora:
+            print(f"Initializing attention base LoRA weights from attention LoRA in {os.path.join(lora_name_or_path, 'adapter_model.safetensors')}")
+            with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
+                for k in f.keys():
+                    shared_attn_lora_params[k] = f.get_tensor(k)
+            shared_attn_lora_params = {(k[11:] if k.startswith('base_model.') else k): v for k, v in shared_attn_lora_params.items()}
+            if any(k.startswith('model.model.') for k in shared_attn_lora_params):
+                shared_attn_lora_params = {(k[6:] if k.startswith('model.') else k): v for k, v in shared_attn_lora_params.items()}
+            
+
+        print(f"Initializing mlp base LoRA weights from share_experts in {os.path.join(lora_name_or_path, 'non_lora_trainables.bin')}")
         shared_ffn_lora_params = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
         shared_ffn_lora_params = {(k[11:] if k.startswith('base_model.') else k): v for k, v in shared_ffn_lora_params.items()}
         if any(k.startswith('model.model.') for k in shared_ffn_lora_params):
             shared_ffn_lora_params = {(k[6:] if k.startswith('model.') else k): v for k, v in shared_ffn_lora_params.items()}
 
+        shared_lora_params = {}
+        shared_lora_params.update(shared_attn_lora_params)
+        shared_lora_params.update(shared_ffn_lora_params)
 
         initial_base_params = {}
-        for k in shared_ffn_lora_params:
+        for k in shared_lora_params:
             if "mlp" in k and "lora" in k and "share_experts" in k:
                 initial_base_params[k.replace("share_experts.lora_A", "base.lora_A").replace(
                     "share_experts.lora_B", "base.lora_B"
-                )] = shared_ffn_lora_params[k]
+                )] = shared_lora_params[k]
             elif "self_attn" in k and "lora" in k:
-                initial_base_params[k] = shared_ffn_lora_params[k]
+                initial_base_params[k.replace("lora_A", "base.lora_A").replace("lora_B", "base.lora_B")] = shared_lora_params[k]
             elif "mlp" in k and ".experts." in k:
                 continue 
             elif "switch" in k:
@@ -183,7 +187,7 @@ def get_orthlora_model(model, model_args, lora_config, decoder_type=Qwen2Decoder
                 exit(-1)
 
         incompatible_keys = model.load_state_dict(initial_base_params, strict=False)
-        # print(incompatible_keys)
+        print(incompatible_keys)
         # print(incompatible_keys)
     else:
         print("No initialization for Base!")
@@ -235,7 +239,7 @@ def replace_module(parent_module, child_name, new_module, old_module):
         if "lora_" in name:
             module.to(old_module.weight.device)
             
-def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2DecoderLayer, lora_name_or_path=None, inference_mode=False):
+def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2DecoderLayer, lora_name_or_path=None, lora_loading_type=None, inference_mode=False):
     # find linear modules with "switch" in their attributes
     key_list = [key for key, _ in model.named_modules()]
     target_module_names = set()
@@ -259,48 +263,36 @@ def get_mixoflora_model(model, model_args, lora_config, decoder_type=Qwen2Decode
                 add_bias = False
         else:
             add_bias = False
-        # new_module = create_mixoflora_module(lora_config, target, num_experts, num_experts_per_token, enable_router_loss, True if expert_selection == "sampling" else False, use_lbl_loss, add_bias=add_bias)
-        new_module = create_mixoflora_module(lora_config, target, model_args, add_bias=add_bias)
-        # setattr(parent, target_name, new_module)
-        # new_module.weight = target.weight 
-        # if hasattr(target, "bias"):
-        #     if target.bias is not None:
-        #         new_module.bias = target.bias
 
-        # new_module.to(target.weight.device)
-        
-        # if getattr(target, "state", None) is not None:
-        #     new_module.state = target.state
-        #     new_module.to(target.weight.device)
+        new_module = create_mixoflora_module(lora_config, target, model_args, add_bias=add_bias)
         replace_module(parent, target_name, new_module, target)
         
         del target
     
     # print(lora_name_or_path)
+    loading_params = {}
     if lora_name_or_path is not None and os.path.exists(lora_name_or_path):
-        print(f"Initializing MoLoRA from {os.path.join(lora_name_or_path, 'adapter_model.safetensors')}")
-        lora_params = {}
-        # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), map_location='cpu')
-        with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
-            for k in f.keys():
-                lora_params[k] = f.get_tensor(k)
-            # lora_params = {(k[11:] if k.startswith('base_model.') else k): v for k, v in lora_params.items()}
-            # if any(k.startswith('model.model.') for k in lora_params):
-            #     lora_params = {(k[6:] if k.startswith('model.') else k): v for k, v in lora_params.items()}
-            # print("LoRA Parameters: ", lora_params.keys())
+        if lora_loading_type in ["all"]:
+            print(f"Initializing attn LoRA from {os.path.join(lora_name_or_path, 'adapter_model.safetensors')}")
+            # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), map_location='cpu')
+            with safe_open(os.path.join(lora_name_or_path, 'adapter_model.safetensors'), framework="pt", device=0) as f:
+                for k in f.keys():
+                    loading_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = f.get_tensor(k)
 
-        initial_molora_params = {}
-        for k in lora_params:
-            if "mlp" in k and "lora" in k:
-                for i in range(model_args.num_experts):
-                    initial_molora_params[k.replace("lora_A", f"experts.{i}.lora_A_{i}").replace("lora_B", f"experts.{i}.lora_B_{i}")] = lora_params[k]
-            else:
-                initial_molora_params[k.replace("lora_A", "lora_A.default").replace("lora_B", "lora_B.default")] = lora_params[k]
-        # print("Loading Parameters: ", initial_molora_params.keys())
-        incompatible_keys = model.load_state_dict(initial_molora_params, strict=False)
+        if lora_loading_type == "share":
+            print(f"Initializing MoLoRA from the share experts of {os.path.join(lora_name_or_path, 'adapter_model.safetensors')}")
+                # non_lora_trainables = torch.load(os.path.join(lora_name_or_path, 'non_lora_trainables.bin'), map_location='cpu')
+                # non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
+                # if any(k.startswith('model.model.') for k in non_lora_trainables):
+                #     non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
+
         # print(incompatible_keys)
     else:
-        print("No initialization for MoLoRA!")
+        print("No initialization for MoLoRA & LoRA!")
+    
+    incompatible_keys = model.load_state_dict(loading_params, strict=False)
+    # if len(incompatible_keys["unexpected_keys"]) != 0:
+    #     print(incompatible_keys)
 
     mark_only_lora_as_trainable(model, getattr(lora_config, "bias", "none"))
     if inference_mode:
@@ -372,6 +364,7 @@ class OrthLoRALinear(nn.Linear, LoRALayer):
         nn.Linear.reset_parameters(self)
         
         if r > 0:
+            # print(r)
             self.base = nn.ModuleDict({"lora_A": nn.Linear(in_features, 2 * r, False, dtype=torch.float32), "lora_B": nn.Linear(2 * r, out_features, False, dtype=torch.float32)})
             self.orth = nn.ModuleDict({"lora_A": nn.Linear(in_features, 2 * r, False, dtype=torch.float32), "lora_B": nn.Linear(2 * r, out_features, False, dtype=torch.float32)})
             self.scaling = self.lora_alpha / (math.sqrt(self.r) if self.use_rslora else self.r)

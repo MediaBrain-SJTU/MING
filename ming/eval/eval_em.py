@@ -14,6 +14,7 @@ import pandas as pd
 import evaluate
 from ming.eval.cblue.post_generate_process import process_generated_results
 from ming.eval.cblue.evaluate import calc_scores, report_error_msg, error_msg, report_score
+from ming.eval.gpt4_evaluations.cmb_eval import cmb_eval
 
 def normalize_frac(x):
     # Pattern to match \frac{a}{b}
@@ -500,6 +501,10 @@ def multiplechoice_en_acc(line):
                 return 0
     return 1
 
+def cmb_score(args, questions):
+    avg_score, questions = cmb_eval(args, questions)
+    print(avg_score)
+
 METRIC_FUNC_MAPPING = {
     "math": math_acc,
     "math_500": math_acc,
@@ -521,7 +526,6 @@ METRIC_FUNC_MAPPING = {
     "record": record_acc,
     "arc": answer_acc,
     "mmedbench_en_cot": mmedbench_en_cot_acc,
-    "mmedbench_zh_cot": mmedbench_zh_cot_acc,
     "squadv20": squadv20_acc,
     "squadv20_1000": squadv20_acc,
     "PLE_TCM_cot": multiplechoice_acc,
@@ -535,13 +539,14 @@ METRIC_FUNC_MAPPING = {
     "CMB_val_cot": multiplechoice_acc,
     "mmlu_cot": multiplechoice_en_acc,
     "MedQA_cot": multiplechoice_en_acc,
-    "MedMCQA_cot": multiplechoice_en_acc
+    "MedMCQA_cot": multiplechoice_en_acc,
+    "medqa_mainland_cot.json": multiplechoice_acc,
+    "mmedbench_zh_cot": multiplechoice_acc,
 }
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
-
     parser.add_argument("--output_file", type=str, required=True)
     args = parser.parse_args()
 
@@ -563,6 +568,9 @@ if __name__ == "__main__":
         print(score)
     elif dataset_name in ["CBLUE"]:
         cblue_score(args, questions)
+    elif dataset_name in ["CMB-Clin-sub0", "CMB-Clin", "clinical-test-200"]:
+        cmb_score(args, questions)
+        # print(f"Acc in {dataset_name}: {avg_acc}")
     else:
         if "type" in questions[0]['additional_info']:
             type_total = {}

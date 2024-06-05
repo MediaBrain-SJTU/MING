@@ -2,7 +2,7 @@
 #SBATCH -J eval_qwen
 #SBATCH --partition=medai_llm
 #SBATCH -N1
-#SBATCH --quotatype=spot
+#SBATCH --quotatype=auto
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --ntasks-per-node=1    

@@ -48,7 +48,7 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --node_rank $SLURM_PROCID \
     ming/train/train_mem.py \
     --lora_enable True --wrap_ffn_lora False --wrap_attn_lora False --lora_r 16 --lora_alpha 32 \
-    --use_orthogonal True --freeze_base_experts True \
+    --use_orthogonal True --orth_attn_lora True \
     --deepspeed scripts/zero2.json \
     --model_name_or_path $MODEL_BASE \
     --train_data_path ${DATA_PATH}/train.json \
@@ -74,7 +74,7 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --dataloader_num_workers 1 \
     --lazy_preprocess True \
     --report_to wandb \
-    --lamda_1 0.001 \
+    --lamda_1 0.0001 \
     --lamda_2 0.
 
 

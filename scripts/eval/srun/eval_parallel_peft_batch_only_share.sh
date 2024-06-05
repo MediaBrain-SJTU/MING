@@ -2,15 +2,14 @@
 #SBATCH -J eval_qwen
 #SBATCH --partition=medai_llm
 #SBATCH -N1
-#SBATCH --quotatype=spot
+#SBATCH --quotatype=auto
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --ntasks-per-node=1    
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
 ###SBATCH --kill-on-bad-exit=1
-
-
+bash ~/add_oss.sh
 
 TASK_PATH="$1"
 MODEL_BASE="$2"

@@ -34,34 +34,33 @@ def load_pretrained_orth_model(model_path, model_base, lora_name_or_path, load_8
         from peft import PeftModel, PeftConfig
         tokenizer = AutoTokenizer.from_pretrained(model_base, trust_remote_code=True, use_fast=False)
         model = AutoModelForCausalLM.from_pretrained(model_base, trust_remote_code=True, low_cpu_mem_usage=True, **kwargs)
-        from peft import PeftModel
-        print(f"Loading LoRA weights from {model_path}")
-        model = PeftModel.from_pretrained(model, model_path, config=lora_config)
-        print(f"Merging LoRA weights")
-        model = model.merge_and_unload()
-
-        print(f"Loading Base and Orthogonal LoRA weights from {model_path}")
         lora_cfg_pretrained = AutoConfig.from_pretrained(model_path)
+
+        if os.path.exists(os.path.join(model_path, "adapter_model.safetensors")):
+            lora_config = PeftConfig.from_pretrained(model_path)
+            print(f"Loading LoRA weights from {model_path}")
+            model = PeftModel.from_pretrained(model, model_path, config=lora_config)
+            print(f"Merging LoRA weights")
+            model = model.merge_and_unload()
+
         lora_config = PeftConfig.from_pretrained(model_path)
         model = get_orthlora_model(model, lora_cfg_pretrained, lora_config, lora_name_or_path=lora_name_or_path, inference_mode=True)
+
+        print(f"Loading Base and Orthogonal LoRA weights from {model_path}")
         orth_lora_weights = load_file(os.path.join(model_path, "model.safetensors"))
         orth_lora_weights = {(k[11:] if k.startswith('base_model.') else k): v for k, v in orth_lora_weights.items()}
         if any(k.startswith('model.model.') for k in orth_lora_weights):
             orth_lora_weights = {(k[6:] if k.startswith('model.') else k): v for k, v in orth_lora_weights.items()}
-        
-        # orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
-
-        # orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
-        tuned_model = None
-        if switch_experts:
-            tuned_model = deepcopy(model)
-            tuned_orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
-            tuned_model.load_state_dict(tuned_orth_lora_weights, strict=False)
-            tuned_model = merge_and_unload(tuned_model)
-            tuned_model.to(torch.float16)
-
         model.load_state_dict(orth_lora_weights, strict=False)
         model = merge_and_unload(model)
+
+        tuned_model = None
+        # if switch_experts:
+        #     tuned_model = deepcopy(model)
+        #     tuned_orth_lora_weights = {k : v for k, v in orth_lora_weights.items() if "orth" in k}
+        #     tuned_model.load_state_dict(tuned_orth_lora_weights, strict=False)
+        #     tuned_model = merge_and_unload(tuned_model)
+        #     tuned_model.to(torch.float16)
         
         print('Convert to FP16...')
         model.to(torch.float16)

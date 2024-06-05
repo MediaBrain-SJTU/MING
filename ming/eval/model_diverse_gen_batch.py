@@ -287,6 +287,9 @@ def eval_model(args):
     elif dataset_name == "humaneval":
         task_specific_prompt = "\n\nPlease complete the code within the code block ```python```."
         # task_specific_prompt = "\n\nPlease answer with option letter directly, do not output other infomation."
+    
+    if "7b" in args.model_path or "7b" in args.model_base:
+        args.batch_size = 8
     dataset = CustomDataset(questions, batch_size=args.batch_size, conv_mode=args.conv_mode, task_specific_prompt=task_specific_prompt)
     for idx in trange(len(dataset)):
         questions, prompts, answers, additional_infos = dataset[idx]
@@ -295,6 +298,7 @@ def eval_model(args):
 
         # print("[FIRST INPUT]: ", prompt)
         input_ids = tokenizer(prompts, return_tensors='pt', padding=True).input_ids
+
         stop_str = conv_templates[args.conv_mode].sep if conv_templates[args.conv_mode].sep_style != SeparatorStyle.TWO else conv_templates[args.conv_mode].sep2
         input_ids = input_ids.to(device='cuda', non_blocking=True)
         attention_mask = input_ids.ne(tokenizer.pad_token_id).to(device='cuda', non_blocking=True)
@@ -308,6 +312,7 @@ def eval_model(args):
             with torch.inference_mode():
                 output_ids = model.generate(
                     input_ids,
+                    attention_mask=attention_mask,
                     do_sample=True if args.temperature > 0 else False,
                     temperature=args.temperature,
                     top_p=args.top_p,

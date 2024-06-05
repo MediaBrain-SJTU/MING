@@ -9,6 +9,7 @@
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
 ###SBATCH --kill-on-bad-exit=1
+# bash ~/add_oss.sh
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)
@@ -20,7 +21,6 @@ NNODES=$SLURM_NNODES
 
 echo Node IP: $head_node_ip nodes_array: $nodes_array
 srun bash -c 'echo $SLURMD_NODENAME-$SLURM_JOB_GPUS' # 打印出不同机器上分配的显卡编号
-bash ~/add_oss.sh
 
 export LOGLEVEL=INFO
 export NCCL_DEBUG=ERROR
@@ -55,9 +55,9 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --bf16 True \
     --output_dir ${SAVE_PATH} \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 8 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 2 \
+    --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 300 \

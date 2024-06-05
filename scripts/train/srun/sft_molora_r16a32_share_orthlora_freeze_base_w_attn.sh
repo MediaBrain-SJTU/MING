@@ -9,6 +9,7 @@
 #SBATCH --mem-per-cpu=8G  
 #SBATCH --time=72:00:00
 ###SBATCH --kill-on-bad-exit=1
+bash ~/add_oss.sh
 
 nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
 nodes_array=($nodes)
@@ -47,14 +48,14 @@ srun --jobid $SLURM_JOBID python -u -m torch.distributed.run \
     --node_rank $SLURM_PROCID \
     ming/train/train_mem.py \
     --lora_enable True --wrap_ffn_lora False --wrap_attn_lora False --lora_r 16 --lora_alpha 32 \
-    --use_orthogonal True --freeze_base_experts True \
+    --use_orthogonal True --orth_attn_lora True --freeze_base_experts True \
     --deepspeed scripts/zero2.json \
     --model_name_or_path $MODEL_BASE \
     --train_data_path ${DATA_PATH}/train.json \
     --val_data_path ${DATA_PATH}/test.json \
     --bf16 True \
     --output_dir ${SAVE_PATH} \
-    --num_train_epochs 2 \
+    --num_train_epochs 3 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 4 \

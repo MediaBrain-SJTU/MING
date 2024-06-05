@@ -240,68 +240,24 @@ class MINGTrainer(Trainer):
         orthogonal_loss = torch.tensor(0.).to(model.device).to(loss.dtype)
         cmp_item = 0
         for name, param in self.model.named_parameters():
-            if "base" in name and "lora_A" in name:
+            if "base." in name and "lora_A" in name:
                 # find all params that start with name.split("share_experts")[0]
-                prefix = name.split("base")[0]
+                prefix = name.split("base.")[0]
                 for name_, param_ in self.model.named_parameters():
                     if prefix + "orth" in name_ and "lora_A" in name_:
-                        # print(name, name_)
-                        # print(param.shape, param_.shape)
-                        # print(param)
-                        # print(param.shape)
+
                         fparam = safe_get_full_fp32_param(param=param)
-                        # fparam = maybe_zero_3(param)
-
-                        # with zero.GatheredParameters([param]):
-                            # print(param.shape)
-                                # fparam = param.clone()
-                        # except Exception as e:
-                        #     print(name, fparam)
-                        #     print(e)
-                        #     exit(-1)
                         param = param if fparam is None else fparam
+
                         fparam_ = safe_get_full_fp32_param(param=param_)
-                            # fparam_ = maybe_zero_3_nodetach(param_)
-                            # with zero.GatheredParameters([param_]):
-                            #     fparam_ = param_.data.clone()
                         param_ = param_ if fparam_ is None else fparam_
-                            # # print(param_)
-                            # # print(param.shape)
-                            # param.to(fparam_.dtype)
-                            # print(param.shape, fparam_.shape)
-                            # cmp_item += 1
-                        orthogonal_loss += torch.abs(torch.mm(param.float(), param_.float().T)).sum() # [r * dim] * [dim * r]
-                        # break # once find, we find the layers.x.mlp.{}_proj.base.lora_A and layers.x.mlp.{}_proj.orth.lora_A 
-                    
-                        # with deepspeed.zero.GatheredParameters(param):
-                        #     with deepspeed.zero.GatheredParameters(param_):
-                            
-                        #     fparam_ = safe_get_full_fp32_param(param=param_)
-                        #     param_ = param_ if fparam_ is None else fparam_
-                        #         # print(name, name_)
-                        #     param_ = param_.to(param.dtype)
-                                # print(param.shape, param_.shape)
-                                # orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
-                                # if param is not None and param_ is not None:
-                                #     print(param.shape, param_.shape)
-                        break
-                        # try:
-                        # param = 
-                        # orthogonal_loss += torch.abs(torch.mm(param, param.transpose(0, -1))).sum() # [r * dim] * [dim * r]
-
-                # for name_, param_ in self.model.named_parameters():
-                #     if "experts" in name_ and name.split("share_experts")[0] == name_.split("experts")[0]:
-                #         # for any param.lora_A and name_.
                         
-                #         orthogonal_loss += torch.abs(torch.mm(param, param_.T)).sum() # [r * dim] * [dim * r]
-                #         break # target modules have been matched
-        # l2-normalization for loranew_A/B
-        # orthogonal_loss /
-        # print(orthogonal_loss)
+                        orthogonal_loss += torch.abs(torch.mm(param.float(), param_.float().T)).sum() # [r * dim] * [dim * r]
+                        break
+
         lamda_1 = self.args.lamda_1
-
-
         logger.info(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
+        print(f"orthogonal_loss: {orthogonal_loss.item()}; accuracy_loss: {loss.item()}; λ1: {lamda_1}")
 
 
         floss = loss + orthogonal_loss * lamda_1
