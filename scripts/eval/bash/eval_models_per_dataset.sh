@@ -1,10 +1,10 @@
 OSS_PATH=~/oss
 TASK_PATH=datas
-# domains=("CBLUE" "cmmlu_cot" "ceval_cot" "PLE_Pharmacy_cot" "PLE_TCM_cot" "clinical-test-200")
+domains=("CBLUE" "cmmlu_cot" "ceval_cot" "PLE_Pharmacy_cot" "PLE_TCM_cot")
 # domains=("CBLUE")
 # domains=("CMB-Clin")
 # domains=("clinical-test-200")
-domains=("ceval_cot")
+# domains=("ceval_cot")
 
 # TRAINING_DATA=ming-moe-clinical-v2
 TRAINING_DATA=ming-moe-clinical-2stage_30k
