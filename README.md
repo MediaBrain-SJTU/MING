@@ -180,6 +180,16 @@
 ## 引用
 
 如果你使用了本项目的数据或者代码，请声明引用
+```latex
+@inproceedings{liao2024medcare,
+  title={MedCare: Advancing Medical LLMs through Decoupling Clinical Alignment and Knowledge Aggregation},
+  author={Liao, Yusheng and Jiang, Shuyang and Chen, Zhe and Wang, Yu and Wang, Yanfeng},
+  booktitle={Findings of the Association for Computational Linguistics: EMNLP 2024},
+  pages={10562--10581},
+  year={2024}
+}
+```
+
 
 ```latex
 @article{liao2024ming,
