@@ -1,0 +1,78 @@
+# MING-7B 评估配置文件
+# 配置版本: 1.0
+# 创建时间: 2024-01-01
+
+# =============================================================================
+# 基础评估配置
+# =============================================================================
+output_dir: "./evaluation_results"
+eval_batch_size: 8
+max_length: 2048
+max_new_tokens: 512
+num_beams: 1
+temperature: 0.0
+top_p: 1.0
+
+# =============================================================================
+# 评估选项
+# =============================================================================
+do_sample: false
+use_cache: true
+compute_entity_metrics: true
+compute_bleu: true
+compute_rouge: true
+
+# =============================================================================
+# 性能监控
+# =============================================================================
+measure_inference_time: true
+measure_memory_usage: true
+
+# =============================================================================
+# 结果保存
+# =============================================================================
+save_outputs: true
+save_references: true
+save_metrics: true
+
+# =============================================================================
+# 复现性配置
+# =============================================================================
+seed: 42
+deterministic: true
+
+# =============================================================================
+# 专科评估配置
+# =============================================================================
+specialty:
+  eval: true
+  target_specialties:
+    - "cardiovascular"
+    - "neurology"
+    - "respiratory"
+    - "gastroenterology"
+    - "endocrinology"
+  benchmark_name: "MING-7B 专科医疗基准测试"
+  target_improvement: 0.15
+  baseline_em: 0.65
+
+# =============================================================================
+# 数据集配置
+# =============================================================================
+datasets:
+  cardiovascular: "ming/eval/datasets/cardiovascular.jsonl"
+  neurology: "ming/eval/datasets/neurology.jsonl"
+  respiratory: "ming/eval/datasets/respiratory.jsonl"
+  gastroenterology: "ming/eval/datasets/gastroenterology.jsonl"
+  endocrinology: "ming/eval/datasets/endocrinology.jsonl"
+  general: "ming/eval/datasets/mmedbench-02-chinese-tiny.jsonl"
+
+# =============================================================================
+# 报告配置
+# =============================================================================
+report:
+  generate: true
+  prefix: "ming_evaluation"
+  include_baseline: true
+  include_error_analysis: true
+  max_error_samples: 20

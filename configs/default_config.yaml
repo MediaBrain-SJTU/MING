@@ -1,0 +1,95 @@
+# MING-7B 项目默认配置文件
+# 配置版本: 1.0
+# 创建时间: 2024-01-01
+# 描述: 项目的默认配置，包含所有模块的基础配置
+
+# =============================================================================
+# 项目全局配置
+# =============================================================================
+project:
+  name: "MING-7B 中文医疗大模型"
+  version: "1.0"
+  base_model: "Qwen/Qwen-7B-Chat"
+  language: "zh"
+  task: "medical_qa"
+
+# =============================================================================
+# 模型配置
+# =============================================================================
+model:
+  name: "MING-7B"
+  path: ""
+  prompt_type: "qwen"
+  max_length: 4096
+  trust_remote_code: true
+
+# =============================================================================
+# 训练配置 (引用training_config.yaml的子集)
+# =============================================================================
+training:
+  output_dir: "./output"
+  num_train_epochs: 3
+  per_device_train_batch_size: 8
+  learning_rate: 2.0e-5
+  max_memory_usage_gb: 22.0
+  fp16: true
+  gradient_checkpointing: true
+
+# =============================================================================
+# 评估配置
+# =============================================================================
+evaluation:
+  output_dir: "./evaluation_results"
+  eval_batch_size: 8
+  max_new_tokens: 512
+  compute_entity_metrics: true
+
+# =============================================================================
+# 特征工程配置
+# =============================================================================
+feature_engineering:
+  device: "cuda"
+  batch_size: 32
+  entity_types:
+    - "疾病"
+    - "症状"
+    - "药物"
+    - "检查"
+    - "治疗"
+    - "身体部位"
+    - "医疗器械"
+    - "专科"
+
+# =============================================================================
+# 专科配置
+# =============================================================================
+specialties:
+  target:
+    - "cardiovascular"
+    - "neurology"
+    - "respiratory"
+    - "gastroenterology"
+    - "endocrinology"
+  weights:
+    cardiovascular: 1.2
+    neurology: 1.2
+    respiratory: 1.0
+    gastroenterology: 1.0
+    endocrinology: 1.0
+  target_improvement: 0.15
+
+# =============================================================================
+# 数据路径配置
+# =============================================================================
+data_paths:
+  train: "ming/eval/datasets/mmedbench-02-chinese-tiny.jsonl"
+  eval: "ming/eval/datasets/mmedbench-02-chinese-tiny.jsonl"
+  specialty_base: "ming/eval/datasets"
+
+# =============================================================================
+# 日志配置
+# =============================================================================
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_file: "./logs/ming.log"
