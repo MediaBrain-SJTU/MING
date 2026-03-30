@@ -1,0 +1,70 @@
+# 多维度评估指标体系配置
+
+# 模型配置
+model:
+  model_path: ""
+  model_base: null
+  device: "cuda"
+
+# 数据配置
+data:
+  eval_data_path: "ming/eval/datasets/mmedbench-02-chinese-tiny.jsonl"
+  max_samples: null  # null表示使用全部数据
+
+# 生成配置
+generation:
+  max_new_tokens: 256
+  temperature: 0.7
+  beam_size: 1
+  top_p: 0.9
+  top_k: 50
+
+# 评估维度配置
+evaluation:
+  # 基础指标
+  evaluate_em: true
+  evaluate_f1: true
+  evaluate_rouge: false
+  
+  # 专科评估
+  evaluate_specialty: true
+  target_specialties:
+    - 心血管
+    - 神经内科
+    - 呼吸
+    - 消化
+    - 内分泌
+  
+  # 实体识别评估
+  evaluate_entity: true
+  
+  # 性能评估
+  evaluate_performance: true
+
+# 输出配置
+output:
+  output_dir: "./eval_results"
+  save_predictions: true
+  save_detailed_report: true
+  report_format: "json"
+
+# 可复现性配置
+reproducibility:
+  seed: 42
+  deterministic: true
+
+# 验收标准阈值
+acceptance_criteria:
+  # 特征工程
+  entity_f1_threshold: 0.92
+  feature_extraction_time_ms: 50
+  entity_coverage_threshold: 0.95
+  
+  # 模型训练
+  specialty_em_improvement: 0.15
+  max_memory_gb: 22
+  convergence_speed_improvement: 0.20
+  
+  # 评估指标
+  report_generation_time_min: 5
+  reproducibility_rate: 1.0
