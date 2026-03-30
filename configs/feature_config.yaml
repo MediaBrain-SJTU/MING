@@ -1,0 +1,123 @@
+# 特征工程模块配置
+
+# 实体识别配置
+entity_recognition:
+  # 是否使用自定义词典
+  use_custom_dict: false
+  custom_dict_path: null
+  
+  # 实体类型配置
+  enabled_entity_types:
+    - DISEASE
+    - SYMPTOM
+    - DRUG
+    - EXAM
+    - BODY
+    - TREATMENT
+    - DEPARTMENT
+    - SPECIALTY
+  
+  # 专科关键词配置
+  specialty_keywords:
+    心血管:
+      - 心脏
+      - 血管
+      - 动脉
+      - 静脉
+      - 血压
+      - 心率
+      - 冠心病
+      - 心肌梗死
+      - 心绞痛
+      - 心律失常
+      - 心力衰竭
+      - 心电图
+      - 超声心动图
+      - 支架
+      - 搭桥
+      - 起搏器
+    
+    神经内科:
+      - 脑
+      - 神经
+      - 脊髓
+      - 癫痫
+      - 帕金森
+      - 卒中
+      - 脑梗
+      - 脑出血
+      - 头痛
+      - 头晕
+      - 昏迷
+      - 瘫痪
+      - 脑电图
+      - 肌电图
+      - 腰穿
+    
+    呼吸:
+      - 肺
+      - 支气管
+      - 气管
+      - 呼吸
+      - 咳嗽
+      - 咳痰
+      - 哮喘
+      - 肺炎
+      - 肺结核
+      - 慢阻肺
+      - 肺癌
+      - 肺功能
+      - 支气管镜
+      - 氧疗
+    
+    消化:
+      - 胃
+      - 肠
+      - 肝
+      - 胆
+      - 胰
+      - 脾
+      - 胃炎
+      - 溃疡
+      - 肝炎
+      - 肝硬化
+      - 胰腺炎
+      - 胃镜
+      - 肠镜
+      - 腹部超声
+    
+    内分泌:
+      - 甲状腺
+      - 肾上腺
+      - 垂体
+      - 胰腺
+      - 糖尿病
+      - 甲亢
+      - 甲减
+      - 肥胖
+      - 骨质疏松
+      - 血糖
+      - 胰岛素
+      - 激素
+
+# 特征提取配置
+feature_extraction:
+  # 启用的特征类型
+  extract_text_features: true
+  extract_statistical_features: true
+  extract_entity_features: true
+  extract_semantic_features: true
+  extract_specialty_features: true
+  
+  # 文本处理配置
+  max_sequence_length: 512
+  
+  # 性能优化
+  use_cache: true
+  cache_size: 10000
+
+# 向量化配置
+vectorization:
+  vector_dim: 128
+  use_feature_engineering: true
+  normalization: true
