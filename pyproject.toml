@@ -23,10 +23,66 @@ dependencies = [
 
 [project.optional-dependencies]
 train = ["deepspeed>=0.9.5", "ninja", "wandb"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "pytest-asyncio>=0.21", "ruff>=0.1.0", "black>=23.0", "isort>=5.12", "mypy>=1.0"]
 
+[project.scripts]
+ming-cli = "ming.serve.cli:main"
 
 [tool.setuptools.packages.find]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
 
 [tool.wheel]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 120
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501", "B008", "C901"]
+exclude = [".git", "__pycache__", "build", "dist", ".eggs", "*.egg-info", "venv", ".venv"]
+
+[tool.ruff.isort]
+known-first-party = ["ming"]
+
+[tool.black]
+line-length = 120
+target-version = ["py38", "py39", "py310", "py311"]
+exclude = '''
+/(
+    \.git
+    | __pycache__
+    | build
+    | dist
+    | \.eggs
+    | .*\.egg-info
+    | venv
+    | \.venv
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+known_first_party = ["ming"]
+skip = [".git", "__pycache__", "build", "dist", ".eggs", "*.egg-info", "venv", ".venv"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = ["build", "dist", "venv", ".venv"]
+
+[tool.coverage.run]
+source = ["ming"]
+branch = true
+omit = ["tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
