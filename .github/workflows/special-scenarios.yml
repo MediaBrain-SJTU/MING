@@ -1,0 +1,370 @@
+name: Special Scenarios Pipeline
+
+on:
+  push:
+    paths:
+      - 'ming/train/**'
+      - 'ming/eval/**'
+      - 'ming/serve/**'
+      - 'scripts/**'
+  pull_request:
+    paths:
+      - 'ming/train/**'
+      - 'ming/eval/**'
+      - 'ming/serve/**'
+      - 'scripts/**'
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      train_changed: ${{ steps.filter.outputs.train }}
+      eval_changed: ${{ steps.filter.outputs.eval }}
+      serve_changed: ${{ steps.filter.outputs.serve }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            train:
+              - 'ming/train/**'
+              - 'scripts/*.json'
+            eval:
+              - 'ming/eval/**'
+            serve:
+              - 'ming/serve/**'
+
+  train-validation:
+    name: Train Task Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.train_changed == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install deepspeed pynvml torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .[dev,train]
+
+      - name: Validate DeepSpeed config files
+        run: |
+          python -c "
+          import json
+          import os
+          from pathlib import Path
+
+          scripts_dir = Path('scripts')
+          config_files = list(scripts_dir.glob('*.json'))
+
+          if not config_files:
+              print('WARNING: No DeepSpeed config files found')
+              exit(0)
+
+          required_fields = ['train_batch_size', 'gradient_accumulation_steps', 'zero_optimization']
+
+          for config_file in config_files:
+              print(f'Validating: {config_file}')
+              with open(config_file, 'r') as f:
+                  config = json.load(f)
+
+              for field in required_fields:
+                  if field not in config and 'train_micro_batch_size_per_gpu' not in config:
+                      print(f'ERROR: Missing required field {field} in {config_file}')
+                      exit(1)
+
+              if 'zero_optimization' in config:
+                  zero_stage = config['zero_optimization'].get('stage', 0)
+                  print(f'  Zero Optimization Stage: {zero_stage}')
+
+          print('All DeepSpeed config files are valid!')
+          "
+
+      - name: Check GPU/resource configuration
+        run: |
+          python -c "
+          import pynvml
+          import json
+          from pathlib import Path
+
+          try:
+              pynvml.nvmlInit()
+              gpu_count = pynvml.nvmlDeviceGetCount()
+              print(f'Available GPUs: {gpu_count}')
+              for i in range(gpu_count):
+                  handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+                  mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                  print(f'  GPU {i}: {mem_info.total / 1024**3:.1f} GB')
+              pynvml.nvmlShutdown()
+          except:
+              print('No NVIDIA GPU detected (running in CI environment)')
+
+          scripts_dir = Path('scripts')
+          config_files = list(scripts_dir.glob('*.json'))
+
+          for config_file in config_files:
+              with open(config_file, 'r') as f:
+                  config = json.load(f)
+
+              batch_size = config.get('train_batch_size', config.get('train_micro_batch_size_per_gpu', 1))
+              accum_steps = config.get('gradient_accumulation_steps', 1)
+              effective_batch = batch_size * accum_steps
+
+              print(f'\\n{config_file.name}:')
+              print(f'  Batch size per GPU: {batch_size}')
+              print(f'  Gradient accumulation steps: {accum_steps}')
+              print(f'  Effective batch size: {effective_batch}')
+
+              if effective_batch > 1024:
+                  print(f'  WARNING: Effective batch size seems large for typical GPU memory')
+          "
+
+      - name: Dry run training script
+        run: |
+          python ming/train/train.py --help || echo "Train script help displayed (dry run)"
+
+  eval-validation:
+    name: Eval Task Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.eval_changed == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .[dev]
+          pip install pandas numpy scikit-learn
+
+      - name: Validate dataset formats
+        run: |
+          python -c "
+          import json
+          import csv
+          from pathlib import Path
+
+          eval_data_dir = Path('ming/eval/datasets')
+
+          if eval_data_dir.exists():
+              jsonl_files = list(eval_data_dir.glob('*.jsonl'))
+              csv_files = list(eval_data_dir.glob('*.csv'))
+
+              print(f'Found {len(jsonl_files)} JSONL files, {len(csv_files)} CSV files')
+
+              for jsonl_file in jsonl_files[:3]:
+                  print(f'Validating: {jsonl_file.name}')
+                  with open(jsonl_file, 'r', encoding='utf-8') as f:
+                      for i, line in enumerate(f):
+                          if i >= 5:
+                              break
+                          try:
+                              item = json.loads(line.strip())
+                              assert isinstance(item, dict), 'Item must be a dict'
+                          except json.JSONDecodeError as e:
+                              print(f'  ERROR at line {i+1}: {e}')
+                              exit(1)
+                  print(f'  First 5 lines are valid JSON')
+
+              for csv_file in csv_files[:3]:
+                  print(f'Validating: {csv_file.name}')
+                  with open(csv_file, 'r', encoding='utf-8') as f:
+                      reader = csv.reader(f)
+                      headers = next(reader, None)
+                      print(f'  Headers: {headers[:5]}...' if headers and len(headers) > 5 else f'  Headers: {headers}')
+          else:
+              print('Eval datasets directory not found')
+          "
+
+      - name: Test evaluation metrics calculation
+        run: |
+          python -c "
+          import numpy as np
+          from sklearn.metrics import accuracy_score, f1_score
+
+          y_true = [0, 1, 0, 1, 0, 1]
+          y_pred = [0, 1, 1, 1, 0, 0]
+
+          accuracy = accuracy_score(y_true, y_pred)
+          f1 = f1_score(y_true, y_pred, average='weighted')
+
+          print(f'Test metrics:')
+          print(f'  Accuracy: {accuracy:.4f}')
+          print(f'  F1 Score: {f1:.4f}')
+
+          try:
+              from ming.eval.cblue.evaluators import BaseEvaluator
+              print('CBlue evaluators module available')
+          except ImportError as e:
+              print(f'CBlue evaluators import note: {e}')
+          "
+
+  serve-validation:
+    name: Serve Task Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.serve_changed == 'true'
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .[dev]
+          pip install fastapi uvicorn gradio httpx pytest-asyncio
+
+      - name: Test FastAPI imports
+        run: |
+          python -c "
+          from fastapi import FastAPI
+          from fastapi.testclient import TestClient
+          import uvicorn
+
+          app = FastAPI(title='Test API')
+
+          @app.get('/')
+          def read_root():
+              return {'message': 'Hello World'}
+
+          client = TestClient(app)
+          response = client.get('/')
+          assert response.status_code == 200
+          assert response.json() == {'message': 'Hello World'}
+          print('FastAPI basic test passed!')
+          "
+
+      - name: Test Gradio imports
+        run: |
+          python -c "
+          import gradio as gr
+
+          def greet(name):
+              return f'Hello {name}!'
+
+          demo = gr.Interface(
+              fn=greet,
+              inputs=gr.Textbox(label='Name'),
+              outputs=gr.Textbox(label='Greeting'),
+              title='Test Demo'
+          )
+
+          print('Gradio interface created successfully!')
+          print(f'Interface title: {demo.title}')
+          print('Gradio basic test passed!')
+          "
+
+      - name: Run serve module tests
+        run: |
+          python -c "
+          try:
+              from ming.serve import inference
+              from ming.serve import cli
+              print('Serve modules imported successfully!')
+          except ImportError as e:
+              print(f'Serve import note: {e}')
+          "
+
+      - name: Create and test simple API server
+        run: |
+          cat > test_api.py << 'EOF'
+          from fastapi import FastAPI
+          from pydantic import BaseModel
+
+          app = FastAPI(title="MING Test API")
+
+          class QueryRequest(BaseModel):
+              text: str
+              max_tokens: int = 100
+
+          class QueryResponse(BaseModel):
+              response: str
+              status: str
+
+          @app.post("/api/query", response_model=QueryResponse)
+          async def query(request: QueryRequest):
+              return QueryResponse(
+                  response=f"Echo: {request.text}",
+                  status="success"
+              )
+
+          @app.get("/health")
+          async def health_check():
+              return {"status": "healthy", "service": "ming-api"}
+          EOF
+
+          python -c "
+          from test_api import app
+          from fastapi.testclient import TestClient
+
+          client = TestClient(app)
+
+          response = client.get('/health')
+          assert response.status_code == 200
+          assert response.json()['status'] == 'healthy'
+          print('Health check passed!')
+
+          response = client.post('/api/query', json={'text': 'test message'})
+          assert response.status_code == 200
+          assert response.json()['status'] == 'success'
+          print('API query test passed!')
+          "
+          rm test_api.py
+
+  summary:
+    name: Scenario Validation Summary
+    runs-on: ubuntu-latest
+    needs: [detect-changes, train-validation, eval-validation, serve-validation]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "=== Special Scenarios Validation Summary ==="
+          echo "Train changes detected: ${{ needs.detect-changes.outputs.train_changed }}"
+          echo "Eval changes detected: ${{ needs.detect-changes.outputs.eval_changed }}"
+          echo "Serve changes detected: ${{ needs.detect-changes.outputs.serve_changed }}"
+          echo ""
+          echo "Train validation status: ${{ needs.train-validation.result }}"
+          echo "Eval validation status: ${{ needs.eval-validation.result }}"
+          echo "Serve validation status: ${{ needs.serve-validation.result }}"

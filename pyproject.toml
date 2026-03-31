@@ -23,10 +23,58 @@ dependencies = [
 
 [project.optional-dependencies]
 train = ["deepspeed>=0.9.5", "ninja", "wandb"]
-
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21",
+    "black>=23.0",
+    "ruff>=0.1",
+    "tox>=4.0",
+    "build>=1.0",
+    "twine>=4.0",
+]
 
 [tool.setuptools.packages.find]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
 
 [tool.wheel]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --cov=ming --cov-report=term-missing --cov-report=xml"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py38', 'py39', 'py310']
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+select = ["E", "F", "I", "B", "C4", "SIM", "UP"]
+ignore = ["E501", "F401", "F403"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "tests",
+    "scripts",
+]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{38,39,310}
+skipsdist = true
+
+[testenv]
+deps =
+    -r requirements.txt
+    -e .[dev]
+commands =
+    pytest tests/unit -v --timeout=60
+"""
