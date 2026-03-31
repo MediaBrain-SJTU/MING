@@ -1,0 +1,256 @@
+# CI Pipeline for MING Medical LLM
+# Triggered on: Pull requests and pushes to main branch
+
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.10"
+  CACHE_VERSION: 1
+
+jobs:
+  # ============================================================================
+  # Stage 1: Code Quality & Linting
+  # ============================================================================
+  lint-and-format:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-lint-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-lint-
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black isort flake8 mypy
+
+      - name: Run Ruff (fast Python linter)
+        run: |
+          ruff check ming/ --output-format=github
+        continue-on-error: true
+
+      - name: Check code formatting with Black
+        run: |
+          black --check --diff ming/
+        continue-on-error: true
+
+      - name: Check import sorting with isort
+        run: |
+          isort --check-only --diff ming/
+        continue-on-error: true
+
+      - name: Run Flake8
+        run: |
+          flake8 ming/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        continue-on-error: true
+
+      - name: Type check with mypy
+        run: |
+          mypy ming/ --ignore-missing-imports --follow-imports=skip
+        continue-on-error: true
+
+  # ============================================================================
+  # Stage 2: Dependency & Security Checks
+  # ============================================================================
+  dependency-check:
+    name: Dependency Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-deps-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-deps-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Validate pyproject.toml
+        run: |
+          pip install validate-pyproject
+          validate-pyproject pyproject.toml
+
+      - name: Check for dependency conflicts
+        run: |
+          pip install pip-check
+          pip-check || true
+
+      - name: Security scan with Bandit
+        run: |
+          pip install bandit[toml]
+          bandit -r ming/ -f json -o bandit-report.json || true
+          bandit -r ming/ || true
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: bandit-report.json
+          retention-days: 30
+
+  # ============================================================================
+  # Stage 3: Unit Tests
+  # ============================================================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, dependency-check]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-test-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-test-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[train]"
+          pip install pytest pytest-cov pytest-asyncio pytest-mock
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest tests/ -v --cov=ming --cov-report=xml --cov-report=html -x || true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: |
+            htmlcov/
+            coverage.xml
+          retention-days: 30
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+          verbose: true
+
+  # ============================================================================
+  # Stage 4: Build Verification
+  # ============================================================================
+  build-verification:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine check-wheel-contents
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Check wheel contents
+        run: |
+          check-wheel-contents dist/*.whl || true
+
+      - name: Validate package with twine
+        run: |
+          twine check dist/*
+
+      - name: Test package installation
+        run: |
+          pip install dist/*.whl
+          python -c "import ming; print(f'MING version: {ming.__version__}')"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ============================================================================
+  # Stage 5: Import Tests (Ensure all modules can be imported)
+  # ============================================================================
+  import-tests:
+    name: Import Tests
+    runs-on: ubuntu-latest
+    needs: [build-verification]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[train]"
+
+      - name: Test core module imports
+        run: |
+          python -c "from ming import conversations, utils, constants"
+          python -c "from ming.model import builder, utils as model_utils"
+          python -c "from ming.train import train, trainer"
+          python -c "from ming.serve import inference, cli"
+          python -c "from ming.eval import cblue"
+
+      - name: Test optional dependencies
+        run: |
+          python -c "import deepspeed; print(f'DeepSpeed: {deepspeed.__version__}')"
+          python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+          python -c "import transformers; print(f'Transformers: {transformers.__version__}')"

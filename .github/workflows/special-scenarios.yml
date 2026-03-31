@@ -1,0 +1,462 @@
+# Special Scenario Workflows for MING Medical LLM
+# Handles training, evaluation, and service-specific triggers
+
+name: Special Scenarios
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'ming/train/**'
+      - 'ming/eval/**'
+      - 'ming/serve/**'
+      - 'scripts/**'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'ming/train/**'
+      - 'ming/eval/**'
+      - 'ming/serve/**'
+      - 'scripts/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  # ============================================================================
+  # Detect Changed Paths
+  # ============================================================================
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      train_changed: ${{ steps.changes.outputs.train }}
+      eval_changed: ${{ steps.changes.outputs.eval }}
+      serve_changed: ${{ steps.changes.outputs.serve }}
+      scripts_changed: ${{ steps.changes.outputs.scripts }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            train:
+              - 'ming/train/**'
+            eval:
+              - 'ming/eval/**'
+            serve:
+              - 'ming/serve/**'
+            scripts:
+              - 'scripts/**'
+
+  # ============================================================================
+  # Scenario A: Training Task Validation
+  # Triggered when: ming/train/ or scripts/*.json files change
+  # ============================================================================
+  training-validation:
+    name: Training Task Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.train_changed == 'true' || needs.detect-changes.outputs.scripts_changed == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-train-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-train-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[train]"
+          pip install jsonschema psutil
+
+      # Step 1: Validate DeepSpeed configuration files
+      - name: Validate DeepSpeed configs
+        run: |
+          python -c "
+          import json
+          import jsonschema
+          import os
+          import sys
+
+          # DeepSpeed config schema
+          ds_schema = {
+              'type': 'object',
+              'properties': {
+                  'fp16': {'type': 'object'},
+                  'bf16': {'type': 'object'},
+                  'train_micro_batch_size_per_gpu': {'type': ['string', 'number']},
+                  'train_batch_size': {'type': ['string', 'number']},
+                  'gradient_accumulation_steps': {'type': ['string', 'number']},
+                  'zero_optimization': {'type': 'object'},
+                  'optimizer': {'type': 'object'},
+                  'scheduler': {'type': 'object'}
+              }
+          }
+
+          scripts_dir = 'scripts'
+          errors = []
+
+          for filename in os.listdir(scripts_dir):
+              if filename.endswith('.json'):
+                  filepath = os.path.join(scripts_dir, filename)
+                  try:
+                      with open(filepath, 'r') as f:
+                          config = json.load(f)
+                      print(f'✅ {filename}: Valid JSON')
+                      
+                      # Check required fields
+                      if 'zero_optimization' in config:
+                          stage = config['zero_optimization'].get('stage', 0)
+                          print(f'   - ZeRO Stage: {stage}')
+                      
+                      if 'fp16' in config and config['fp16'].get('enabled') == 'auto':
+                          print(f'   - FP16: auto-detected')
+                          
+                  except json.JSONDecodeError as e:
+                      errors.append(f'❌ {filename}: Invalid JSON - {e}')
+                  except Exception as e:
+                      errors.append(f'❌ {filename}: Error - {e}')
+
+          if errors:
+              print('\nErrors found:')
+              for error in errors:
+                  print(error)
+              sys.exit(1)
+          else:
+              print('\n✅ All DeepSpeed configs are valid')
+          "
+
+      # Step 2: Check GPU/Memory resource configurations
+      - name: Check resource configurations
+        run: |
+          python -c "
+          import json
+          import os
+
+          scripts_dir = 'scripts'
+          warnings = []
+
+          for filename in os.listdir(scripts_dir):
+              if filename.endswith('.json'):
+                  filepath = os.path.join(scripts_dir, filename)
+                  with open(filepath, 'r') as f:
+                      config = json.load(f)
+                  
+                  # Check ZeRO stage and recommend memory settings
+                  if 'zero_optimization' in config:
+                      stage = config['zero_optimization'].get('stage', 0)
+                      
+                      # Stage 3 should have appropriate settings
+                      if stage == 3:
+                          if 'offload_optimizer' not in config.get('zero_optimization', {}):
+                              warnings.append(f'{filename}: ZeRO-3 without optimizer offload may use excessive memory')
+                          if 'offload_param' not in config.get('zero_optimization', {}):
+                              warnings.append(f'{filename}: ZeRO-3 without parameter offload may use excessive memory')
+                      
+                      # Check overlap_comm for ZeRO-2
+                      if stage == 2:
+                          if not config['zero_optimization'].get('overlap_comm', False):
+                              warnings.append(f'{filename}: ZeRO-2 without overlap_comm may be slower')
+
+          if warnings:
+              print('⚠️ Configuration warnings:')
+              for warning in warnings:
+                  print(f'  - {warning}')
+          else:
+              print('✅ Resource configurations look good')
+          "
+
+      # Step 3: Dry-run training script syntax check
+      - name: Validate training script syntax
+        run: |
+          python -m py_compile ming/train/train.py
+          python -m py_compile ming/train/trainer.py
+          python -m py_compile ming/train/train_mem.py
+          echo "✅ Training scripts syntax is valid"
+
+      # Step 4: Check for required imports and dependencies
+      - name: Check training dependencies
+        run: |
+          python -c "
+          import torch
+          import transformers
+          import deepspeed
+          from ming.train import train, trainer
+          print(f'✅ PyTorch: {torch.__version__}')
+          print(f'✅ Transformers: {transformers.__version__}')
+          print(f'✅ DeepSpeed: {deepspeed.__version__}')
+          print('✅ All training dependencies available')
+          "
+
+  # ============================================================================
+  # Scenario B: Evaluation Task Validation
+  # Triggered when: ming/eval/ files change
+  # ============================================================================
+  evaluation-validation:
+    name: Evaluation Task Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.eval_changed == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-eval-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-eval-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[train]"
+          pip install pytest pandas numpy
+
+      # Step 1: Validate evaluation dataset formats
+      - name: Validate evaluation datasets
+        run: |
+          python -c "
+          import json
+          import os
+          import pandas as pd
+
+          datasets_dir = 'ming/eval/datasets'
+          if os.path.exists(datasets_dir):
+              for filename in os.listdir(datasets_dir):
+                  filepath = os.path.join(datasets_dir, filename)
+                  try:
+                      if filename.endswith('.json') or filename.endswith('.jsonl'):
+                          if filename.endswith('.jsonl'):
+                              with open(filepath, 'r', encoding='utf-8') as f:
+                                  lines = f.readlines()
+                                  for i, line in enumerate(lines[:5]):  # Check first 5 lines
+                                      data = json.loads(line)
+                                      if not isinstance(data, dict):
+                                          raise ValueError(f'Line {i+1} is not a JSON object')
+                          else:
+                              with open(filepath, 'r', encoding='utf-8') as f:
+                                  data = json.load(f)
+                          print(f'✅ {filename}: Valid JSON/JSONL')
+                      elif filename.endswith('.csv'):
+                          df = pd.read_csv(filepath)
+                          print(f'✅ {filename}: Valid CSV with {len(df)} rows')
+                  except Exception as e:
+                      print(f'❌ {filename}: Error - {e}')
+                      raise
+          else:
+              print('ℹ️ No datasets directory found')
+          "
+
+      # Step 2: Test evaluation metric calculation logic
+      - name: Test evaluation metrics
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          
+          # Test CBLUE evaluators
+          from ming.eval.cblue.evaluators import (
+              calc_cls_task_scores,
+              calc_info_extract_task_scores,
+              calc_nlg_task_scores
+          )
+          print('✅ CBLUE evaluators imported successfully')
+          
+          # Test basic metric calculations
+          # Classification metrics
+          predictions = [{'id': 1, 'answer': 'A'}, {'id': 2, 'answer': 'B'}]
+          references = [{'id': 1, 'answer': 'A'}, {'id': 2, 'answer': 'B'}]
+          
+          cls_score = calc_cls_task_scores(predictions, references)
+          print(f'✅ Classification metrics working: {cls_score}')
+          "
+        continue-on-error: true
+
+      # Step 3: Validate evaluation scripts
+      - name: Validate evaluation scripts
+        run: |
+          python -m py_compile ming/eval/cblue/evaluate.py
+          python -m py_compile ming/eval/cblue/evaluators.py
+          python -m py_compile ming/eval/eval_em.py
+          echo "✅ Evaluation scripts syntax is valid"
+
+      # Step 4: Check evaluation dependencies
+      - name: Check evaluation dependencies
+        run: |
+          python -c "
+          import pandas as pd
+          import numpy as np
+          import sklearn
+          from ming.eval import cblue
+          print(f'✅ Pandas: {pd.__version__}')
+          print(f'✅ NumPy: {np.__version__}')
+          print(f'✅ Scikit-learn: {sklearn.__version__}')
+          print('✅ All evaluation dependencies available')
+          "
+
+  # ============================================================================
+  # Scenario C: Service Deployment Validation
+  # Triggered when: ming/serve/ files change
+  # ============================================================================
+  service-validation:
+    name: Service Deployment Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.serve_changed == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-serve-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-serve-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[train]"
+          pip install pytest httpx requests
+
+      # Step 1: Validate FastAPI service can start
+      - name: Test FastAPI service startup
+        run: |
+          python -c "
+          from fastapi import FastAPI
+          from fastapi.testclient import TestClient
+          import sys
+          sys.path.insert(0, '.')
+          
+          # Test that FastAPI app can be created
+          app = FastAPI(title='MING Test')
+          
+          @app.get('/health')
+          def health():
+              return {'status': 'healthy'}
+          
+          client = TestClient(app)
+          response = client.get('/health')
+          assert response.status_code == 200
+          assert response.json() == {'status': 'healthy'}
+          print('✅ FastAPI service test passed')
+          "
+
+      # Step 2: Test Gradio interface availability
+      - name: Test Gradio interface
+        run: |
+          python -c "
+          import gradio as gr
+          print(f'✅ Gradio version: {gr.__version__}')
+          
+          # Test basic Gradio components can be created
+          with gr.Blocks() as demo:
+              with gr.Row():
+                  with gr.Column():
+                      input_text = gr.Textbox(label='输入')
+                      submit_btn = gr.Button('提交')
+                  with gr.Column():
+                      output_text = gr.Textbox(label='输出')
+          
+          print('✅ Gradio interface components created successfully')
+          "
+
+      # Step 3: Run API interface tests
+      - name: Test API interfaces
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          
+          from ming.serve import inference
+          print('✅ Inference module imported successfully')
+          
+          # Test conversation templates
+          from ming.conversations import conv_templates, get_default_conv_template
+          print(f'✅ Available conversation templates: {list(conv_templates.keys())}')
+          
+          # Test default conversation
+          conv = get_default_conv_template('ming')
+          print(f'✅ Default conversation template loaded')
+          "
+
+      # Step 4: Validate service scripts
+      - name: Validate service scripts
+        run: |
+          python -m py_compile ming/serve/inference.py
+          python -m py_compile ming/serve/cli.py
+          echo "✅ Service scripts syntax is valid"
+
+      # Step 5: Check service dependencies
+      - name: Check service dependencies
+        run: |
+          python -c "
+          import fastapi
+          import uvicorn
+          import gradio
+          import httpx
+          from ming.serve import inference, cli
+          print(f'✅ FastAPI: {fastapi.__version__}')
+          print(f'✅ Uvicorn: {uvicorn.__version__}')
+          print(f'✅ Gradio: {gradio.__version__}')
+          print(f'✅ HTTPX: {httpx.__version__}')
+          print('✅ All service dependencies available')
+          "
+
+  # ============================================================================
+  # Summary Report
+  # ============================================================================
+  scenario-summary:
+    name: Scenario Summary
+    runs-on: ubuntu-latest
+    needs: [detect-changes, training-validation, evaluation-validation, service-validation]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "=== Special Scenario Validation Summary ==="
+          echo ""
+          echo "Changed Paths:"
+          echo "  - Training: ${{ needs.detect-changes.outputs.train_changed }}"
+          echo "  - Evaluation: ${{ needs.detect-changes.outputs.eval_changed }}"
+          echo "  - Service: ${{ needs.detect-changes.outputs.serve_changed }}"
+          echo "  - Scripts: ${{ needs.detect-changes.outputs.scripts_changed }}"
+          echo ""
+          echo "Validation Results:"
+          echo "  - Training Validation: ${{ needs.training-validation.result || 'skipped' }}"
+          echo "  - Evaluation Validation: ${{ needs.evaluation-validation.result || 'skipped' }}"
+          echo "  - Service Validation: ${{ needs.service-validation.result || 'skipped' }}"

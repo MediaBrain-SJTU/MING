@@ -1,0 +1,247 @@
+# CD Pipeline for MING Medical LLM
+# Triggered on: Tags (v*) and pushes to main/master
+
+name: CD
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.10"
+  PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+jobs:
+  # ============================================================================
+  # Job 1: Version Validation
+  # ============================================================================
+  version-check:
+    name: Version Validation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      is_tag: ${{ steps.check_tag.outputs.is_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install toml semver
+
+      - name: Extract version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
+
+      - name: Check if tag push
+        id: check_tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            echo "is_tag=true" >> $GITHUB_OUTPUT
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            echo "Tag version: $TAG_VERSION"
+            if [ "$TAG_VERSION" != "${{ steps.get_version.outputs.version }}" ]; then
+              echo "Error: Tag version ($TAG_VERSION) does not match pyproject.toml version (${{ steps.get_version.outputs.version }})"
+              exit 1
+            fi
+          else
+            echo "is_tag=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate semantic versioning
+        run: |
+          python -c "
+          import semver
+          version = '${{ steps.get_version.outputs.version }}'
+          try:
+              semver.VersionInfo.parse(version)
+              print(f'Version {version} is valid semantic version')
+          except ValueError as e:
+              print(f'Invalid semantic version: {e}')
+              exit(1)
+          "
+
+      - name: Check version not exists on PyPI
+        if: steps.check_tag.outputs.is_tag == 'true'
+        run: |
+          pip install requests
+          python -c "
+          import requests
+          import sys
+          version = '${{ steps.get_version.outputs.version }}'
+          response = requests.get(f'https://pypi.org/pypi/ming/{version}/json')
+          if response.status_code == 200:
+              print(f'Error: Version {version} already exists on PyPI')
+              sys.exit(1)
+          else:
+              print(f'Version {version} is available for release')
+          "
+
+  # ============================================================================
+  # Job 2: Build Package
+  # ============================================================================
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: version-check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Validate package
+        run: |
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dist
+          path: dist/
+          retention-days: 30
+
+  # ============================================================================
+  # Job 3: Publish to PyPI
+  # ============================================================================
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [version-check, build]
+    if: needs.version-check.outputs.is_tag == 'true'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ming/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  # ============================================================================
+  # Job 4: Create GitHub Release
+  # ============================================================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version-check, build, publish-pypi]
+    if: needs.version-check.outputs.is_tag == 'true'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist
+          path: dist/
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          VERSION=${{ needs.version-check.outputs.version }}
+          echo "## MING Medical LLM v$VERSION" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### Installation" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo "pip install ming==$VERSION" >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Changes" >> release_notes.md
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD~1)..HEAD >> release_notes.md || echo "- See commit history for details" >> release_notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release_notes.md
+          files: dist/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # Job 5: Notify Team
+  # ============================================================================
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [version-check, create-release]
+    if: always()
+    steps:
+      - name: Notify Success
+        if: needs.create-release.result == 'success'
+        run: |
+          echo "✅ Release ${{ needs.version-check.outputs.version }} published successfully!"
+          echo "PyPI: https://pypi.org/project/ming/${{ needs.version-check.outputs.version }}/"
+          echo "GitHub Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.version-check.outputs.version }}"
+
+      - name: Notify Failure
+        if: failure()
+        run: |
+          echo "❌ Release failed!"
+          echo "Please check the workflow logs for details."
+
+      # Uncomment and configure for Slack/Discord/DingTalk notifications
+      # - name: Send Slack Notification
+      #   if: always()
+      #   uses: slackapi/slack-github-action@v1
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "MING Release ${{ needs.version-check.outputs.version }}: ${{ needs.create-release.result == 'success' && '✅ Success' || '❌ Failed' }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # - name: Send DingTalk Notification
+      #   if: always()
+      #   uses: zcong1993/actions-ding@master
+      #   with:
+      #     dingToken: ${{ secrets.DINGTALK_TOKEN }}
+      #     body: |
+      #       {
+      #         "msgtype": "markdown",
+      #         "markdown": {
+      #           "title": "MING Release Notification",
+      #           "text": "### MING v${{ needs.version-check.outputs.version }} Release ${{ needs.create-release.result == 'success' && '✅ 成功' || '❌ 失败' }}\n\nPyPI: https://pypi.org/project/ming/${{ needs.version-check.outputs.version }}/"
+      #         }
+      #       }
