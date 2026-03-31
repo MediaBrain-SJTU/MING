@@ -1,0 +1,253 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  version-check:
+    name: Version Validation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      is_valid: ${{ steps.validate.outputs.is_valid }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Validate semantic version
+        id: validate
+        run: |
+          python -c "
+          import re
+          import sys
+          
+          version = '${{ steps.get_version.outputs.version }}'
+          pattern = r'^(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9.-]+))?(?:\+([a-zA-Z0-9.-]+))?$'
+          
+          if re.match(pattern, version):
+              print(f'Version {version} is valid semantic version')
+              print('is_valid=true')
+          else:
+              print(f'Version {version} is NOT valid semantic version')
+              print('is_valid=false')
+              sys.exit(1)
+          "
+
+      - name: Check version matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          PROJECT_VERSION=${{ steps.get_version.outputs.version }}
+          if [ "$TAG_VERSION" != "$PROJECT_VERSION" ]; then
+            echo "Tag version ($TAG_VERSION) does not match pyproject.toml version ($PROJECT_VERSION)"
+            exit 1
+          fi
+          echo "Version match confirmed: $TAG_VERSION"
+
+  build-package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: version-check
+    if: needs.version-check.outputs.is_valid == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ needs.version-check.outputs.version }}
+          path: dist/
+
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: build-package
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/ming/
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.version-check.outputs.version }}
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version-check, build-package]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.version-check.outputs.version }}
+          path: dist/
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          python -c "
+          import subprocess
+          import sys
+          
+          version = '${{ needs.version-check.outputs.version }}'
+          
+          result = subprocess.run(
+              ['git', 'log', '--pretty=format:- %s', f'v{version}^..HEAD'],
+              capture_output=True,
+              text=True
+          )
+          
+          notes = f'''## Release v{version}
+          
+          ### Changes
+          {result.stdout if result.stdout else 'No changes documented'}
+          
+          ### Installation
+          \`\`\`bash
+          pip install ming=={version}
+          \`\`\`
+          
+          ### What's Changed
+          - See [CHANGELOG.md](CHANGELOG.md) for detailed changes
+          '''
+          
+          with open('release_notes.md', 'w') as f:
+              f.write(notes)
+          
+          print('Release notes generated')
+          "
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release_notes.md
+          files: dist/*
+          draft: false
+          prerelease: ${{ contains(needs.version-check.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [version-check, publish-pypi]
+    if: always()
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.publish-pypi.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=:x:" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "${{ steps.status.outputs.emoji }} MING Deployment ${{ steps.status.outputs.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.status.outputs.emoji }} *MING v${{ needs.version-check.outputs.version }} Deployment*\n\n*Status:* ${{ steps.status.outputs.status }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }' \
+            $SLACK_WEBHOOK_URL || true
+
+      - name: Send DingTalk notification
+        if: env.DINGTALK_WEBHOOK != ''
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+        run: |
+          curl -X POST -H 'Content-Type: application/json' \
+            --data '{
+              "msgtype": "markdown",
+              "markdown": {
+                "title": "MING Deployment",
+                "text": "### MING v${{ needs.version-check.outputs.version }} Deployment\n\n- **Status:** ${{ steps.status.outputs.status }}\n- **Branch:** ${{ github.ref_name }}\n- **Commit:** ${{ github.sha }}\n- **Author:** ${{ github.actor }}"
+              }
+            }' \
+            $DINGTALK_WEBHOOK || true
+
+      - name: Summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ needs.version-check.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.status.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY

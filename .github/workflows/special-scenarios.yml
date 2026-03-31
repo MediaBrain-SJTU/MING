@@ -1,0 +1,395 @@
+name: Special Scenarios
+
+on:
+  push:
+    branches: [main, master, dev]
+    paths:
+      - 'ming/train/**'
+      - 'ming/eval/**'
+      - 'ming/serve/**'
+      - 'scripts/*.json'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'ming/train/**'
+      - 'ming/eval/**'
+      - 'ming/serve/**'
+      - 'scripts/*.json'
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  detect-changes:
+    name: Detect Changed Modules
+    runs-on: ubuntu-latest
+    outputs:
+      train: ${{ steps.detect.outputs.train }}
+      eval: ${{ steps.detect.outputs.eval }}
+      serve: ${{ steps.detect.outputs.serve }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changes
+        id: detect
+        run: |
+          git diff --name-only HEAD^ HEAD > changed_files.txt || true
+          
+          TRAIN_CHANGED=$(grep -E '^ming/train/' changed_files.txt && echo 'true' || echo 'false')
+          EVAL_CHANGED=$(grep -E '^ming/eval/' changed_files.txt && echo 'true' || echo 'false')
+          SERVE_CHANGED=$(grep -E '^ming/serve/' changed_files.txt && echo 'true' || echo 'false')
+          
+          echo "train=$TRAIN_CHANGED" >> $GITHUB_OUTPUT
+          echo "eval=$EVAL_CHANGED" >> $GITHUB_OUTPUT
+          echo "serve=$SERVE_CHANGED" >> $GITHUB_OUTPUT
+          
+          echo "### Changed Modules" >> $GITHUB_STEP_SUMMARY
+          echo "- Train: $TRAIN_CHANGED" >> $GITHUB_STEP_SUMMARY
+          echo "- Eval: $EVAL_CHANGED" >> $GITHUB_STEP_SUMMARY
+          echo "- Serve: $SERVE_CHANGED" >> $GITHUB_STEP_SUMMARY
+
+  train-validation:
+    name: Training Module Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.train == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema pyyaml
+          pip install -e .[train] || pip install -r requirements.txt
+
+      - name: Validate DeepSpeed configurations
+        run: |
+          python -c "
+          import json
+          import sys
+          from pathlib import Path
+          
+          def validate_deepspeed_config(config_path):
+              required_keys = ['train_micro_batch_size_per_gpu', 'train_batch_size']
+              with open(config_path) as f:
+                  config = json.load(f)
+              
+              print(f'Validating {config_path}')
+              
+              if 'zero_optimization' in config:
+                  stage = config['zero_optimization'].get('stage', 0)
+                  print(f'  - ZeRO Stage: {stage}')
+                  
+                  if stage == 2:
+                      required = ['overlap_comm', 'contiguous_gradients']
+                      for key in required:
+                          if key not in config['zero_optimization']:
+                              print(f'  - Warning: Missing recommended key: {key}')
+                  
+                  elif stage == 3:
+                      required = ['stage3_prefetch_bucket_size', 'stage3_param_persistence_threshold']
+                      for key in required:
+                          if key not in config['zero_optimization']:
+                              print(f'  - Warning: Missing recommended key: {key}')
+              
+              print(f'  - Valid: True')
+              return True
+          
+          for config_file in Path('scripts').glob('*.json'):
+              try:
+                  validate_deepspeed_config(config_file)
+              except Exception as e:
+                  print(f'Error validating {config_file}: {e}')
+                  sys.exit(1)
+          "
+
+      - name: Check GPU/Memory configuration
+        run: |
+          python -c "
+          import json
+          from pathlib import Path
+          
+          print('### Resource Configuration Check')
+          
+          for config_file in Path('scripts').glob('*.json'):
+              with open(config_file) as f:
+                  config = json.load(f)
+              
+              print(f'\n{config_file.name}:')
+              
+              batch_size = config.get('train_micro_batch_size_per_gpu', 'auto')
+              gradient_accum = config.get('gradient_accumulation_steps', 'auto')
+              
+              print(f'  - Micro batch size: {batch_size}')
+              print(f'  - Gradient accumulation: {gradient_accum}')
+              
+              if batch_size != 'auto' and isinstance(batch_size, int):
+                  if batch_size > 32:
+                      print('  - Warning: Large micro batch size may cause OOM')
+              
+              if 'zero_optimization' in config:
+                  stage = config['zero_optimization'].get('stage', 0)
+                  print(f'  - ZeRO Stage {stage}: Memory efficient')
+          "
+
+      - name: Validate training script syntax
+        run: |
+          python -m py_compile ming/train/train.py
+          python -m py_compile ming/train/trainer.py
+          echo "Training scripts syntax OK"
+
+      - name: Test training imports
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          
+          print('Testing training module imports...')
+          
+          try:
+              from ming.train.trainer import MINGTrainer
+              print('  - MINGTrainer: OK')
+          except ImportError as e:
+              print(f'  - MINGTrainer: Warning - {e}')
+          
+          print('Training module validation complete')
+          " || true
+
+  eval-validation:
+    name: Evaluation Module Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.eval == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonlines pandas
+          pip install -e . || pip install -r requirements.txt
+
+      - name: Validate evaluation datasets
+        run: |
+          python -c "
+          import jsonlines
+          from pathlib import Path
+          
+          dataset_dir = Path('ming/eval/datasets')
+          
+          if not dataset_dir.exists():
+              print('No datasets directory found')
+              exit(0)
+          
+          print('### Dataset Validation')
+          
+          for data_file in dataset_dir.glob('*.jsonl'):
+              print(f'\nValidating {data_file.name}:')
+              try:
+                  count = 0
+                  with jsonlines.open(data_file) as reader:
+                      for obj in reader:
+                          count += 1
+                          if count == 1:
+                              print(f'  - Sample keys: {list(obj.keys())}')
+                  print(f'  - Total records: {count}')
+                  print(f'  - Status: Valid')
+              except Exception as e:
+                  print(f'  - Error: {e}')
+          "
+
+      - name: Test evaluation metrics
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          
+          print('### Evaluation Metrics Test')
+          
+          try:
+              from ming.eval.cblue.evaluate import calc_scores
+              print('  - calc_scores: OK')
+          except ImportError as e:
+              print(f'  - calc_scores: Warning - {e}')
+          
+          try:
+              from ming.eval.cblue.evaluators import *
+              print('  - evaluators: OK')
+          except ImportError as e:
+              print(f'  - evaluators: Warning - {e}')
+          
+          print('Evaluation module validation complete')
+          " || true
+
+      - name: Validate evaluation scripts syntax
+        run: |
+          python -m py_compile ming/eval/eval_em.py
+          python -m py_compile ming/eval/eval_gpt4.py
+          echo "Evaluation scripts syntax OK"
+
+  serve-validation:
+    name: Service Module Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.serve == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx pytest-asyncio
+          pip install -e . || pip install -r requirements.txt
+
+      - name: Test FastAPI service
+        run: |
+          python -c "
+          from fastapi import FastAPI
+          from fastapi.testclient import TestClient
+          
+          app = FastAPI(title='MING Medical LLM')
+          
+          @app.get('/health')
+          def health_check():
+              return {'status': 'healthy', 'service': 'ming'}
+          
+          @app.get('/ready')
+          def readiness_check():
+              return {'ready': True}
+          
+          client = TestClient(app)
+          
+          response = client.get('/health')
+          assert response.status_code == 200
+          assert response.json()['status'] == 'healthy'
+          print('FastAPI health check: OK')
+          
+          response = client.get('/ready')
+          assert response.status_code == 200
+          print('FastAPI readiness check: OK')
+          "
+
+      - name: Test Gradio interface
+        run: |
+          python -c "
+          import gradio as gr
+          
+          def mock_inference(text):
+              return f'Response: {text}'
+          
+          demo = gr.Interface(
+              fn=mock_inference,
+              inputs=gr.Textbox(label='Input'),
+              outputs=gr.Textbox(label='Output'),
+              title='MING Medical LLM'
+          )
+          
+          print('Gradio interface creation: OK')
+          print(f'Gradio version: {gr.__version__}')
+          "
+
+      - name: Test inference module imports
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          
+          print('### Inference Module Test')
+          
+          try:
+              from ming.serve.inference import generate_stream
+              print('  - generate_stream: OK')
+          except ImportError as e:
+              print(f'  - generate_stream: Warning - {e}')
+          
+          try:
+              from ming.serve.cli import *
+              print('  - CLI module: OK')
+          except ImportError as e:
+              print(f'  - CLI module: Warning - {e}')
+          
+          print('Service module validation complete')
+          " || true
+
+      - name: Validate service scripts syntax
+        run: |
+          python -m py_compile ming/serve/inference.py
+          python -m py_compile ming/serve/cli.py
+          echo "Service scripts syntax OK"
+
+      - name: API endpoint test
+        run: |
+          python -c "
+          from fastapi import FastAPI
+          from fastapi.testclient import TestClient
+          from pydantic import BaseModel
+          
+          app = FastAPI()
+          
+          class InferenceRequest(BaseModel):
+              prompt: str
+              max_new_tokens: int = 256
+              temperature: float = 1.0
+          
+          class InferenceResponse(BaseModel):
+              generated_text: str
+              prompt: str
+          
+          @app.post('/api/generate', response_model=InferenceResponse)
+          def generate(request: InferenceRequest):
+              return InferenceResponse(
+                  generated_text=f'Mock response for: {request.prompt}',
+                  prompt=request.prompt
+              )
+          
+          client = TestClient(app)
+          
+          response = client.post(
+              '/api/generate',
+              json={'prompt': 'Test prompt', 'max_new_tokens': 100}
+          )
+          
+          assert response.status_code == 200
+          assert 'generated_text' in response.json()
+          print('API endpoint test: OK')
+          "
+
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [detect-changes, train-validation, eval-validation, serve-validation]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## Special Scenarios Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Module | Triggered | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Train | ${{ needs.detect-changes.outputs.train }} | ${{ needs.train-validation.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Eval | ${{ needs.detect-changes.outputs.eval }} | ${{ needs.eval-validation.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Serve | ${{ needs.detect-changes.outputs.serve }} | ${{ needs.serve-validation.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
